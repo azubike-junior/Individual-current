@@ -83,9 +83,9 @@ export const emptyData = {
   placeOfPermitIssue: "",
   permitIssueDate: "",
   permitExpiryDate: "",
-  religion: 0,
+  religion: 1,
   address1: "",
-  maritalStatus: 0,
+  maritalStatus: 1,
   reference1: {
     fullName: "",
     email: "",

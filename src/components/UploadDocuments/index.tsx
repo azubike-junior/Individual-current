@@ -1,9 +1,8 @@
 import React, { SyntheticEvent, useState } from "react";
 import { CsProps, UploadDetails } from "../../interfaces";
-import { HookInputField, SelectInput } from "../InputField";
 import { useForm } from "react-hook-form";
 import { useStateMachine } from "little-state-machine";
-import { updateName } from "./../../utils/utilities";
+import { updateName, getBase64 } from "./../../utils/utilities";
 import { Form } from "react-bootstrap";
 import {
   validateFileSize,
@@ -31,7 +30,7 @@ export default function UploadDocuments() {
   const [docType, setDocType] = useState("");
   const dispatch = useDispatch();
   const [fileType, setFileType] = useState("");
-  const [fileBase64, setFileBase64] = useState("");
+  const [fileBase64, setFileBase64] = useState<any>();
   const [imgName, setImageName] = useState("");
   const [docTypeName, setDocTypeName] = useState("");
   const [fileUrl, setFileUrl] = useState("");
@@ -72,12 +71,16 @@ export default function UploadDocuments() {
     setDoc(file[0]);
     setFileType(file[0].type);
     setImageName(file[0].name);
-    imageToBase64(file)
-      .then((response: any) => {
-        console.log(">>>>>response", response);
-        setFileBase64(response);
-      })
-      .catch((e: any) => console.log(e));
+    // imageToBase64(file)
+    //   .then((response: any) => {
+    //     console.log(">>>>>response", response);
+    //     setFileBase64(response);
+    //   })
+    //   .catch((e: any) => console.log(e));
+
+    getBase64(file).then((result) => {
+      setFileBase64(result);
+    });
     setUploadDocError("");
   };
 
@@ -104,6 +107,8 @@ export default function UploadDocuments() {
     },
   });
 
+  console.log(">>>>>>", state.data);
+
   //submit function
   const submitDocuments = () => {
     console.log(">>>>> docTypeName", docTypeName);
@@ -124,6 +129,10 @@ export default function UploadDocuments() {
 
     if (docTypes.includes(docType)) {
       return setDocTypeError("You cant upload the same document twice");
+    }
+
+    if (uploadDocError) {
+      return;
     }
 
     setDocTypeError("");
@@ -152,7 +161,6 @@ export default function UploadDocuments() {
         "You need to upload required document to continue"
       );
     }
-
     dispatch(handleNext());
     console.log(">>>>>data", state.data);
   };

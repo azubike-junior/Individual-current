@@ -12,12 +12,18 @@ import {
 import {
   annualSalary,
   employmentStatus,
+  emptyData,
   genders,
   maritalStatuses,
   titles,
 } from "../../utils/constant";
 import { CheckInput, HookInputField, SelectInput } from "../InputField";
-import { getText, getValues, updateName } from "../../utils/utilities";
+import {
+  convertDateToNum,
+  getText,
+  getValues,
+  updateName,
+} from "../../utils/utilities";
 import { religions } from "../../utils/constant";
 import { useSelector, useDispatch } from "react-redux";
 import { RootState } from "../../store/store";
@@ -27,40 +33,112 @@ import {
   useValidateBvnMutation,
 } from "../../services/Mutations/apis";
 import Loader from "../Loader";
+import { TransactionService } from "./../../interfaces/index";
 
 export default function AccountSpecifications() {
   const dispatch = useDispatch();
-  const [iB, setIb] = useState("");
-  const [dC, setDc] = useState("");
-  const [mobileM, setMobileM] = useState("");
+  const [internetbanking, setInternetBanking] = useState("");
+  const [debitCard, setDebitCard] = useState("");
+  const [mobileMoney, setMobileMoney] = useState("");
   const [emailAlert, setEmailAlert] = useState("");
   const [smsAlert, setSmsAlert] = useState("");
-  const [internetBankingChecked, setIbChecked] = useState(false);
-  const [debitCardChecked, setDcChecked] = useState(false);
+  const [internetBankingChecked, setInternetBankingChecked] = useState(false);
+  const [debitCardChecked, setDebitCardChecked] = useState(false);
   const [mobileMoneyChecked, setMobileMoneyChecked] = useState(false);
   const [emailAlertChecked, setEmailAlertChecked] = useState(false);
   const [smsAlertChecked, setSmsAlertChecked] = useState(false);
 
   const { state, actions } = useStateMachine({ updateName });
+
+  const { transactionAlertPreference, electronicBankPreference } =
+    state.data.accountServicesRequest;
+
   const handleEmailAlert = (e: React.ChangeEvent<HTMLInputElement>) => {
+    actions.updateName({
+      ...state.data,
+      accountServicesRequest: {
+        transactionAlertPreference: {
+          smsAlert: transactionAlertPreference?.smsAlert,
+          emailAlert: e.target.checked ? e.target.value : "",
+        },
+        electronicBankPreference: {
+          internetBanking: electronicBankPreference?.internetBanking,
+          debitCard: electronicBankPreference?.debitCard,
+          mobileMoney: electronicBankPreference?.mobileMoney,
+        },
+      },
+    });
     setEmailAlertChecked(e.target.checked);
-    setEmailAlert(e.target.value);
   };
   const handleSmsAlert = (e: React.ChangeEvent<HTMLInputElement>) => {
+    actions.updateName({
+      ...state.data,
+      accountServicesRequest: {
+        transactionAlertPreference: {
+          smsAlert: e.target.checked ? e.target.value : "",
+          emailAlert: transactionAlertPreference?.emailAlert,
+        },
+        electronicBankPreference: {
+          internetBanking: electronicBankPreference?.internetBanking,
+          debitCard: electronicBankPreference?.debitCard,
+          mobileMoney: electronicBankPreference?.mobileMoney,
+        },
+      },
+    });
     setSmsAlertChecked(e.target.checked);
-    setSmsAlert(e.target.value);
-  };
-  const handleIb = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setIb(e.target.value);
-    setIbChecked(e.target.checked);
-  };
-  const handleDc = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setDc(e.target.value);
-    setDcChecked(e.target.checked);
   };
 
-  const handleMobileM = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setMobileM(e.target.value);
+  const handleInternetBanking = (e: React.ChangeEvent<HTMLInputElement>) => {
+    actions.updateName({
+      ...state.data,
+      accountServicesRequest: {
+        transactionAlertPreference: {
+          smsAlert: transactionAlertPreference?.smsAlert,
+          emailAlert: transactionAlertPreference?.emailAlert,
+        },
+        electronicBankPreference: {
+          internetBanking: e.target.checked ? e.target.value : "",
+          debitCard: electronicBankPreference?.debitCard,
+          mobileMoney: electronicBankPreference?.mobileMoney,
+        },
+      },
+    });
+    setInternetBankingChecked(e.target.checked);
+  };
+
+  const handleDebitCard = (e: React.ChangeEvent<HTMLInputElement>) => {
+    actions.updateName({
+      ...state.data,
+      accountServicesRequest: {
+        transactionAlertPreference: {
+          smsAlert: transactionAlertPreference?.smsAlert,
+          emailAlert: transactionAlertPreference?.emailAlert,
+        },
+        electronicBankPreference: {
+          debitCard: e.target.checked ? e.target.value : "",
+          mobileMoney: electronicBankPreference?.mobileMoney,
+          internetBanking: electronicBankPreference?.internetBanking,
+        },
+      },
+    });
+    setDebitCardChecked(e.target.checked);
+  };
+
+  const handleMobileMoney = (e: React.ChangeEvent<HTMLInputElement>) => {
+    actions.updateName({
+      ...state.data,
+      accountServicesRequest: {
+        transactionAlertPreference: {
+          smsAlert: transactionAlertPreference?.smsAlert,
+          emailAlert: transactionAlertPreference?.emailAlert,
+        },
+        electronicBankPreference: {
+          mobileMoney: e.target.checked ? e.target.value : "",
+          internetBanking: electronicBankPreference?.internetBanking,
+          debitCard: electronicBankPreference?.debitCard,
+        },
+      },
+    });
     setMobileMoneyChecked(e.target.checked);
   };
 
@@ -96,16 +174,6 @@ export default function AccountSpecifications() {
     data.middleName = response?.middleName;
     data.dateofBirth = response?.dateOfBirth;
     data.nationality = response?.nationality;
-
-    // data.firstName = "Azubike";
-    // data.bvn = "6533738383";
-    // data.lastName = "Sean";
-    // data.telNumber1 = "6363737373";
-    // data.middleName = "sean";
-    // data.dateofBirth = "20-12-2021";
-    // data.nationality = "Nigeria";
-
-    // data.refereesRequests?.push(data?.reference1, data.reference2)
     data.city = Number(data.city);
     data.gender = Number(data.gender);
     data.title = Number(data.title);
@@ -126,19 +194,32 @@ export default function AccountSpecifications() {
       ...data,
       refereesRequests: [data.reference1, data.reference2],
       accountServicesRequest: {
-        transactionAlertPreference: { emailAlert, smsAlert },
+        transactionAlertPreference: {
+          emailAlert: transactionAlertPreference?.emailAlert,
+          smsAlert: transactionAlertPreference?.smsAlert,
+        },
         electronicBankPreference: {
-          internetBanking: iB,
-          mobileMoney: mobileM,
-          debitCard: dC,
+          internetBanking: electronicBankPreference?.internetBanking,
+          mobileMoney: electronicBankPreference?.mobileMoney,
+          debitCard: electronicBankPreference?.debitCard,
         },
         chequeConfirmation: false,
       },
     };
 
     actions.updateName(state.data);
-    console.log(">>>>state", state.data);
     dispatch(handleNext());
+  };
+
+  // const previous = () => {
+  //   actions.updateName(emptyData);
+  //   localStorage.clear();
+  //   dispatch(handlePrevious());
+  // };
+
+  const goBack = () => {
+    window.location.reload();
+    localStorage.clear();
   };
 
   useEffect(() => {
@@ -157,7 +238,7 @@ export default function AccountSpecifications() {
     >
       {Object.keys(errors).length > 0 && (
         <span className="text-danger d-flex justify-content-center">
-          All fields with Asteric are required
+          Please fill all required fields
         </span>
       )}
       <form onSubmit={handleSubmit(submitHandler)}>
@@ -195,7 +276,7 @@ export default function AccountSpecifications() {
                           // selectArray={titles}
                           // errors={errors?.title}
                           type="text"
-                          message="title field is required"
+                          message="Title is required"
                         />
 
                         <SelectInput
@@ -208,7 +289,7 @@ export default function AccountSpecifications() {
                           // selectArray={genders}
                           // errors={errors.gender}
                           type="text"
-                          message="gender field is required"
+                          message="Gender is required"
                         />
 
                         <div className="form-group col-lg-4 col-md-6 col-sm-12 font-weight-700">
@@ -284,7 +365,7 @@ export default function AccountSpecifications() {
                             placeholder="Enter your email address"
                             register={register}
                             required
-                            message="email address is required"
+                            message="Email is required"
                           />
                         </div>
                         <div className="form-group col-lg-4 col-md-6 col-sm-12 font-weight-700">
@@ -321,7 +402,7 @@ export default function AccountSpecifications() {
                           required
                           // errors={errors.city}
                           type="text"
-                          message="place of birth is required"
+                          message="Place of birth is required"
                         />
                         <SelectInput
                           className="form-group col-lg-4 col-md-6 col-sm-12 font-weight-700"
@@ -333,13 +414,13 @@ export default function AccountSpecifications() {
                           required
                           // errors={errors.state}
                           type="text"
-                          message="state of origin is required"
+                          message="State of origin is required"
                         />
 
                         <SelectInput
                           className="form-group col-lg-4 col-md-6 col-sm-12 font-weight-700"
                           name="lga"
-                          label="L.G.A"
+                          label="LGA"
                           register={register}
                           selectArray={getValues(LGA, newValue)}
                           // selectArray={LGA}
@@ -459,7 +540,7 @@ export default function AccountSpecifications() {
                         <SelectInput
                           className="form-group col-lg-12 col-md-6 col-sm-12 font-weight-700"
                           name="documentType"
-                          label="DOCUMENT UPLOAD"
+                          label="DOCUMENT TYPE"
                           register={register}
                           selectArray={getValues(uploadTypes, newValue)}
                           // selectArray={uploadTypes}
@@ -480,9 +561,9 @@ export default function AccountSpecifications() {
                               (e.target.value = e.target.value.slice(0, 11))
                             }
                             required
-                            placeholder="id Number"
+                            placeholder="ID Number"
                             name="idNumber"
-                            message="id number must be 12 digit"
+                            message="ID number must be 12 digit"
                           />
                         </div>
 
@@ -530,7 +611,7 @@ export default function AccountSpecifications() {
                       <div className="row">
                         <div className="form-group col-lg-12 col-md-6 col-sm-12 font-weight-700">
                           <HookInputField
-                            label="PRODUCT TYPE"
+                            label="ACCOUNT TYPE"
                             type="text"
                             register={register}
                             // errors={errors.accountSpecification?.productType}
@@ -835,26 +916,34 @@ export default function AccountSpecifications() {
                       <div className="eb_pref font-12 form-group col-lg-12 col-md-6 col-sm-12">
                         <div className=" pl-4 form-check-inline flex justify-center">
                           <input
-                            checked={internetBankingChecked}
-                            // {...register(name)}
+                            checked={
+                              state.data.accountServicesRequest
+                                .electronicBankPreference?.internetBanking
+                                ? true
+                                : false
+                            }
                             name="accountServiceRequest.electronicBankPreference.internetBanking"
                             value="internetBanking"
                             type="checkbox"
                             className="form-check-input mt-1"
-                            onChange={handleIb}
+                            onChange={handleInternetBanking}
                             data-parsley-errors-container="#error-checkbox"
                           />
                           <label className="pt-3">INTERNET BANKING</label>
                         </div>
                         <div className=" pl-4 form-check-inline flex justify-center">
                           <input
-                            checked={debitCardChecked}
-                            // {...register(name)}
+                            checked={
+                              state.data.accountServicesRequest
+                                .electronicBankPreference?.debitCard
+                                ? true
+                                : false
+                            }
                             name="accountServiceRequest.electronicBankPreference.debitCard"
                             value="debitCard"
                             type="checkbox"
                             className="form-check-input mt-1"
-                            onChange={handleDc}
+                            onChange={handleDebitCard}
                             data-parsley-errors-container="#error-checkbox"
                           />
                           <label className="pt-3">DEBIT CARD</label>
@@ -862,11 +951,16 @@ export default function AccountSpecifications() {
                         <div className=" pl-4 form-check-inline flex justify-center">
                           <input
                             name="accountServiceRequest.electronicBankPreference.mobileMoney"
-                            checked={mobileMoneyChecked}
+                            checked={
+                              state.data.accountServicesRequest
+                                .electronicBankPreference?.mobileMoney
+                                ? true
+                                : false
+                            }
                             value="mobileMoney"
                             type="checkbox"
                             className="form-check-input mt-1"
-                            onChange={handleMobileM}
+                            onChange={handleMobileMoney}
                             data-parsley-errors-container="#error-checkbox"
                           />
                           <label className="pt-3">MOBILE MONEY</label>
@@ -883,7 +977,12 @@ export default function AccountSpecifications() {
                         <div className=" pl-4 form-check-inline flex justify-center">
                           <input
                             name="accountServiceRequest.transactionAlertPreference.emailAlert"
-                            checked={emailAlertChecked}
+                            checked={
+                              state.data.accountServicesRequest
+                                .transactionAlertPreference?.emailAlert
+                                ? true
+                                : false
+                            }
                             value="emailAlert"
                             type="checkbox"
                             className="form-check-input mt-1"
@@ -895,14 +994,19 @@ export default function AccountSpecifications() {
                         <div className=" pl-4 form-check-inline flex justify-center">
                           <input
                             name="accountServiceRequest.transactionAlertPreference.smsAlert"
-                            checked={smsAlertChecked}
+                            checked={
+                              state.data.accountServicesRequest
+                                .transactionAlertPreference?.smsAlert
+                                ? true
+                                : false
+                            }
                             value="smsAlert"
                             type="checkbox"
                             className="form-check-input mt-1"
                             onChange={handleSmsAlert}
                             data-parsley-errors-container="#error-checkbox"
                           />
-                          <label className="pt-3">EMAIL ALERT</label>
+                          <label className="pt-3">SMS ALERT</label>
                         </div>
 
                         <p id="error-checkbox"></p>
@@ -920,7 +1024,7 @@ export default function AccountSpecifications() {
             <div className="user_acct_details col-lg-2 col-md-6 col-sm-12">
               <button
                 type="button"
-                onClick={() => dispatch(handlePrevious())}
+                onClick={goBack}
                 className="btn btn-block btn-suntrust font-weight-900"
               >
                 PREVIOUS PAGE

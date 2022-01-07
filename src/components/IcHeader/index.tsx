@@ -18,7 +18,7 @@ export default function CsHeader({currentStep}: any) {
                 <img src={logo} alt="" />
               </a>
 
-              <button
+              {/* <button
                 className="navbar-toggler ref"
                 type="button"
                 data-bs-toggle="collapse"
@@ -27,12 +27,12 @@ export default function CsHeader({currentStep}: any) {
                 aria-label="Toggle navigation"
               >
                 <span className="navbar-toggler-icon"></span>
-              </button>
+              </button> */}
 
-              <div
+              {/* <div
                 className="collapse navbar-collapse ref"
                 id="navbarSupportedContent"
-              >
+              > */}
                 <ul className="navbar-nav ml-auto py-4 py-md-0">
                   <li className="nav-item pl-4 pl-md-0 ml-0 ml-md-4">
                     <a
@@ -43,7 +43,7 @@ export default function CsHeader({currentStep}: any) {
                     </a>
                   </li>
                 </ul>
-              </div>
+              {/* </div> */}
             </nav>
           </div>
         </div>
@@ -53,7 +53,7 @@ export default function CsHeader({currentStep}: any) {
         <div className="page">
           <div className="flex-column">
             <div className="card nib_savings">
-              <label className="text-center font-weight-700 nib">
+              <label className="text-center font-24 font-weight-700 nib">
                 OPEN AN INDIVIDUAL CURRENT ACCOUNT
               </label>
             </div>

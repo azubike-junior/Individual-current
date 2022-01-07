@@ -1,36 +1,42 @@
 import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import {
+  addBvn,
   handleNext,
   useValidateBvnMutation,
 } from "../../services/Mutations/apis";
-import { HookInputField } from "../InputField";
 import Loader from "../Loader";
 import OtpLayer from "../IcOtpComp/index";
+import { useSelector } from "react-redux";
+import { RootState } from "../../store/store";
+import { useDispatch } from "react-redux";
 
 export default function CsBvnAuth() {
   const [bvnError, setBvnError] = useState("");
   const [bvn, setBvn] = useState("");
+  const dispatch = useDispatch();
 
-  const [validateBvn, { data: responseData, error, isLoading, isSuccess }] =
-    useValidateBvnMutation();
+  const {
+    error: _error,
+    bvnData,
+    loading,
+    isSuccessful,
+  } = useSelector((state: RootState) => state.handler);
 
   const submitHandler = (e: React.SyntheticEvent) => {
     e.preventDefault();
 
     if (!bvn) {
-      setBvnError("bvn field is required");
+      setBvnError("BVN field is required");
       return;
     }
     if (bvn.length < 11) {
-      setBvnError("bvn digit should not be lesser than 11");
+      setBvnError("BVN should not be lesser than 11 digits");
       return;
     }
     setBvnError("");
-    validateBvn(bvn);
+    dispatch(addBvn(bvn));
   };
-
-  console.log(">>>>>response", responseData, isSuccess);
 
   return (
     <div className="tab-content p-30" id="myTabContent">
@@ -48,32 +54,42 @@ export default function CsBvnAuth() {
                 className="form-group pt-3 col-lg-12 col-md-12 col-sm-12 m-b-20"
               >
                 <div className="form-group form-group-default">
-                  <label htmlFor="">Bvn Number</label>
+                  <label htmlFor="">BVN VALIDATION</label>
                   {bvnError && (
                     <span
-                      style={{ fontSize: "10px" }}
-                      className="text-danger pl-2"
+                      className="d-flex justify-content-center pb-2 text-danger"
+                      style={{ fontSize: "12px" }}
                     >
                       {bvnError}
                     </span>
                   )}
-                  {error && (
+                  {_error?.name ? (
                     <span
-                      style={{ fontSize: "10px" }}
-                      className="text-danger pl-2"
+                      className="d-flex justify-content-center pb-2 text-danger"
+                      style={{ fontSize: "12px" }}
                     >
-                      invalid bvn input{" "}
+                      {" "}
+                      Sorry, something went wrong{" "}
                     </span>
+                  ) : _error ? (
+                    <span
+                      className="d-flex justify-content-center pb-2 text-danger"
+                      style={{ fontSize: "12px" }}
+                    >
+                      Invalid BVN
+                    </span>
+                  ) : (
+                    ""
                   )}
                   <input
                     type="number"
-                    placeholder="Enter bvn number"
+                    placeholder="Enter BVN"
                     className="form-control"
                     name="bvn"
-                     onInput={(e: React.ChangeEvent<HTMLInputElement>) =>
-                              (e.target.value = e.target.value.slice(0, 11))
-                            }
-                    disabled={isSuccess}
+                    onInput={(e: React.ChangeEvent<HTMLInputElement>) =>
+                      (e.target.value = e.target.value.slice(0, 11))
+                    }
+                    disabled={isSuccessful}
                     value={bvn}
                     onChange={(e) => setBvn(e.target.value)}
                   />
@@ -82,14 +98,14 @@ export default function CsBvnAuth() {
                   <button
                     className="btn bvn-gray col-lg-6 col-md-3 col-sm-12 shadow-sm bg-body rounded"
                     type="submit"
-                    disabled={isSuccess}
+                    disabled={isSuccessful}
                   >
-                    {isLoading ? <Loader /> : "Search"}
+                    {loading ? <Loader /> : "Search"}
                   </button>
                 </div>
               </form>
 
-              {isSuccess && <OtpLayer data={responseData} />}
+              {bvnData.responseCode === "00" && <OtpLayer data={bvnData} />}
             </div>
           </div>
         </div>

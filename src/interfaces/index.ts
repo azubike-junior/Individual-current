@@ -42,10 +42,28 @@ export interface CsProps {
   reference2: Reference;
 }
 
+export interface DataProps {
+  bvn: string;
+  firstName: string;
+  lastName: string;
+  middleName: string;
+  dateOfBirth: string;
+  phoneNumber1: string;
+  gender: string;
+  email: string;
+  nationality: string;
+  surname: string;
+  nin: string;
+  maritalStatus: string;
+  address: string;
+  residentialAddress: string;
+  responseCode?: string;
+}
+
 export interface AccountService {
   transactionAlertPreference?: TransactionService;
   electronicBankPreference?: ElectronicService;
-  chequeConfirmation: boolean;
+  chequeConfirmation?: boolean;
 }
 
 export interface TransactionService {
@@ -94,4 +112,13 @@ export interface Reference {
   fullName: string;
   email: string;
   phone: string;
+}
+
+
+export interface FetchArgs extends RequestInit {
+  url: string;
+  params?: Record<string, any>;
+  body?: any;
+  responseHandler?: "json" | "text" | ((response: Response) => Promise<any>);
+  validateStatus?: (response: Response, body: any) => boolean;
 }

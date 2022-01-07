@@ -11,7 +11,7 @@ import { handleNext } from "../../services/Mutations/apis";
 import { RootState } from "../../store/store";
 
 export default function OtpLayer({ data }: any) {
-    const dispatch = useDispatch()
+  const dispatch = useDispatch();
   const [responseData, setResponseData] = useState({});
   const [otpError, setOtpError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -19,7 +19,6 @@ export default function OtpLayer({ data }: any) {
   const history = useHistory();
   const [validateOtp, { data: otpResponse, isLoading, error, isSuccess }] =
     useValidateOtpMutation();
-
 
   const compareOtp = (e: React.SyntheticEvent) => {
     e.preventDefault();
@@ -34,23 +33,22 @@ export default function OtpLayer({ data }: any) {
       localStorage.removeItem("userDetails");
       setLoading(false);
       setOtpError(
-        "this Otp code has expired, click on the resend otp link below"
+        "This OTP code has expired, click on the resend OTP link below"
       );
       return;
     }
     if (details.token !== otp) {
       setLoading(false);
       setOtpError(
-        "invalid otp input, please enter the valid otp to continue the process"
+        "Invalid OTP input, Please enter the valid OTP to continue the process"
       );
       return;
     }
     setOtpError("");
     setLoading(false);
-    localStorage.clear()
+    localStorage.clear();
     localStorage.setItem("userBvn", JSON.stringify(data?.bvn));
-    console.log("----------", localStorage.getItem("userBvn")  );
-    
+
     dispatch(handleNext());
   };
 
@@ -61,8 +59,7 @@ export default function OtpLayer({ data }: any) {
       phoneNumber: data?.phoneNumber1,
       bvn: data?.bvn,
       token: generatedOtp,
-      messageBody: `SunTrust Bank
-       OTP: ${generatedOtp}. 
+      messageBody: `${generatedOtp}. 
        Kindly use the provided OTP to complete Account Opening Request. OTP Expires in 5 Minutes`,
       expiry: now.getTime() + ttl,
     };
@@ -77,7 +74,6 @@ export default function OtpLayer({ data }: any) {
   };
 
   useEffect(() => {
-    console.log(">>>>otpdata", data);
     smsService(300000);
   }, []);
 
@@ -86,11 +82,15 @@ export default function OtpLayer({ data }: any) {
       onSubmit={compareOtp}
       className="form-group col-lg-12 col-md-12 col-sm-12 m-b-20"
     >
-      <span style={{ color: "green", fontSize: "12px"}} >
+      <span style={{ color: "green", fontSize: "12px" }}>
         An OTP digit has been sent to your bvn phone number
-      </span> <br />
+      </span>{" "}
+      <br />
       {otpError && (
-        <span style={{ fontSize: "10px" }} className="text-danger pl-2">
+        <span
+          style={{ fontSize: "10px", paddingBottom: "4px" }}
+          className="text-danger pl-2"
+        >
           {otpError}
         </span>
       )}
@@ -98,13 +98,13 @@ export default function OtpLayer({ data }: any) {
         type="number"
         placeholder="Enter OTP digit"
         className="form-control"
-         onInput={(e: React.ChangeEvent<HTMLInputElement>) =>
-          (e.target.value = e.target.value.slice(0, 6))}
+        onInput={(e: React.ChangeEvent<HTMLInputElement>) =>
+          (e.target.value = e.target.value.slice(0, 6))
+        }
         name="otp"
         value={otp}
         onChange={(e) => setOtp(e.target.value)}
       />
-
       <button
         style={{ border: "none", cursor: "pointer" }}
         className="bvn mt-2 text-success"

@@ -21,10 +21,15 @@ import {
   maritalStatuses,
   titles,
 } from "../../utils/constant";
-import { clearData, getText, updateName } from "./../../utils/utilities";
+import { setPage } from "../../services/Mutations/apis";
+import {
+  clearData,
+  convertDateToNum,
+  getText,
+  updateName,
+} from "./../../utils/utilities";
 import { religions } from "./../../utils/constant";
 import Loader from "../Loader";
-import AcountOpenSuccessPage from "../../pages/AccountOpenSuccessPage";
 import AccountOpenSuccessPage from "../../pages/AccountOpenSuccessPage";
 
 export default function REVIEW() {
@@ -38,8 +43,6 @@ export default function REVIEW() {
     openIndividualCurrent,
     { isLoading, data: responseData, error, isSuccess, isError },
   ] = useOpenIndividualCurrentMutation();
-
-  const history = useHistory();
 
   const {
     register,
@@ -98,13 +101,6 @@ export default function REVIEW() {
   const { data: cities } = useGetCityQuery("");
   const { data: branches } = useGetBankBranchQuery("");
 
-  // const docType = getText(uploadTypes, documentType);
-  // const userStateOfResidence = getText(states, state);
-
-  // const docType = uploadTypes.find((item: any) => item.value === documentType);
-
-  console.log(">>>>>states", states);
-
   const userStateOfResidence = states?.find(
     (item: any) => item.value === stateOfResidence
   );
@@ -127,254 +123,294 @@ export default function REVIEW() {
       _title,
       reference1,
       reference2,
+      dateofBirth,
       ...rest
     } = allData.data;
-    openIndividualCurrent(rest);
-    console.log("rest", rest);
+    // const data = {
+    //   dateofBirth: convertDateToNum(dateofBirth ? dateofBirth : ""),
+    //   ...rest,
+    // };
+
+    const newData = {
+      religion: rest.religion + " " + userReligion,
+      state: rest.state + " " + _state,
+      lga: rest.lga + " " + _lga,
+      city: rest.city + " " + _city,
+      dateofBirth: convertDateToNum(dateofBirth ? dateofBirth : ""),
+      bvn: "63738293740",
+    };
+
+    const { state, lga, city, religion, bvn, ...remainingData } = rest;
+    const dataToSubmit = { ...remainingData, ...newData };
+    console.log("dataToSubmit", dataToSubmit);
+
+    openIndividualCurrent(dataToSubmit);
     localStorage.clear();
   };
 
+  console.log(">>>>>somrin", responseData, isSuccess, isError);
+
   return (
-    <div className="px-4">
-      <div
-        className="tab-pane fade show active"
-        id="review_info"
-        role="tabpanel"
-        aria-labelledby="review_info-tab"
-      >
-        {!isSuccess ? (
-          <div className="col-lg-12">
-            <div className="row">
-              {/* <!-- PERSONAL DETAILS --> */}
-              <div className="m-t-20 col-lg-6 col-md-12">
-                <h5>PREVIEW INFORMATION</h5>
-                <div className="card col-lg-12 col-md-12 col-sm-12">
-                  <div className="m-t-30 m-b-20">
-                    <h6>PERSONAL DETAILS</h6>
-                  </div>
-                  <div className="d-flex m-b-10 margin_bottom font_size">
-                    <label className="col-lg-4 col-md-6 col-sm-12">BVN:</label>
-                    <div className="col-lg-8 col-md-6 col-sm-12 font-weight-700">
-                      {bvn}
+    <>
+      {responseData?.responseCode === "00" && (
+        <AccountOpenSuccessPage actions={actions} />
+      )}
+      <div className="px-4">
+        <div
+          className="tab-pane fade show active"
+          id="review_info"
+          role="tabpanel"
+          aria-labelledby="review_info-tab"
+        >
+          {responseData?.responseCode === "96" && (
+            <span className="text-danger d-flex justify-content-center">
+              This BVN has been used to create an Account.
+            </span>
+          )}
+
+          {isError && (
+            <span className="text-danger d-flex justify-content-center">
+              sorry, something went wrong
+            </span>
+          )}
+
+          {responseData?.responseCode !== "00" ? (
+            <div className="col-lg-12">
+              <div className="row">
+                {/* <!-- PERSONAL DETAILS --> */}
+                <div className="m-t-20 col-lg-6 col-md-12">
+                  <h5>PREVIEW INFORMATION</h5>
+                  <div className="card col-lg-12 col-md-12 col-sm-12">
+                    <div className="m-t-30 m-b-20">
+                      <h6>PERSONAL DETAILS</h6>
                     </div>
-                  </div>
-                  {userTitle && (
                     <div className="d-flex m-b-10 margin_bottom font_size">
                       <label className="col-lg-4 col-md-6 col-sm-12">
-                        TITLE:
+                        BVN:
                       </label>
                       <div className="col-lg-8 col-md-6 col-sm-12 font-weight-700">
-                        {_title}
+                        {bvn}
                       </div>
                     </div>
-                  )}
-                  <div className="d-flex m-b-10 margin_bottom font_size">
-                    <label className="col-lg-4 col-md-6 col-sm-12">
-                      FIRST NAME:
-                    </label>
-                    <div className="col-lg-8 col-md-6 col-sm-12 font-weight-700">
-                      {firstName}
-                    </div>
-                  </div>
-                  <div className="d-flex m-b-10 margin_bottom font_size">
-                    <label className="col-lg-4 col-md-6 col-sm-12">
-                      MIDDLE NAME:
-                    </label>
-                    <div className="col-lg-8 col-md-6 col-sm-12 font-weight-700">
-                      {middleName}
-                    </div>
-                  </div>
-                  <div className="d-flex m-b-10 margin_bottom font_size">
-                    <label className="col-lg-4 col-md-6 col-sm-12">
-                      LAST NAME:
-                    </label>
-                    <div className="col-lg-8 col-md-6 col-sm-12 font-weight-700">
-                      {lastName}
-                    </div>
-                  </div>
-                  <div className="d-flex m-b-10 margin_bottom font_size">
-                    <label className="col-lg-4 col-md-6 col-sm-12">
-                      PHONE NUMBER:
-                    </label>
-                    <div className="col-lg-8 col-md-6 col-sm-12 font-weight-700">
-                      {telNumber1}
-                    </div>
-                  </div>
-                  {telNumber2 && (
+                    {userTitle && (
+                      <div className="d-flex m-b-10 margin_bottom font_size">
+                        <label className="col-lg-4 col-md-6 col-sm-12">
+                          TITLE:
+                        </label>
+                        <div className="col-lg-8 col-md-6 col-sm-12 font-weight-700">
+                          {_title}
+                        </div>
+                      </div>
+                    )}
                     <div className="d-flex m-b-10 margin_bottom font_size">
                       <label className="col-lg-4 col-md-6 col-sm-12">
-                        ALTERNATE PHONE NUMBER:
+                        FIRST NAME:
                       </label>
                       <div className="col-lg-8 col-md-6 col-sm-12 font-weight-700">
-                        {telNumber2}
+                        {firstName}
                       </div>
                     </div>
-                  )}
-                  <div className="d-flex m-b-10 margin_bottom font_size">
-                    <label className="col-lg-4 col-md-6 col-sm-12">EMAIL</label>
-                    <div className="col-lg-8 col-md-6 col-sm-12 font-weight-700">
-                      {emailAddress}
-                    </div>
-                  </div>
-                  <div className="d-flex m-b-10 margin_bottom font_size">
-                    <label className="col-lg-4 col-md-6 col-sm-12">
-                      MOTHERS MAIDEN NAME
-                    </label>
-                    <div className="col-lg-8 col-md-6 col-sm-12 font-weight-700">
-                      {motherMaidenName}
-                    </div>
-                  </div>
-                  <div className="d-flex m-b-10 margin_bottom font_size">
-                    <label className="col-lg-4 col-md-6 col-sm-12">
-                      DATE OF BIRTH
-                    </label>
-                    <div className="col-lg-8 col-md-6 col-sm-12 font-weight-700">
-                      {dateofBirth}
-                    </div>
-                  </div>
-                  {_gender && (
                     <div className="d-flex m-b-10 margin_bottom font_size">
                       <label className="col-lg-4 col-md-6 col-sm-12">
-                        GENDER
+                        MIDDLE NAME:
                       </label>
                       <div className="col-lg-8 col-md-6 col-sm-12 font-weight-700">
-                        {_gender}
+                        {middleName}
                       </div>
                     </div>
-                  )}
-                  <div className="d-flex m-b-10 margin_bottom font_size">
-                    <label className="col-lg-4 col-md-6 col-sm-12">
-                      MARITAL STATUS
-                    </label>
-                    <div className="col-lg-8 col-md-6 col-sm-12 font-weight-700">
-                      {status}
-                    </div>
-                  </div>
-                  {userReligion && (
                     <div className="d-flex m-b-10 margin_bottom font_size">
                       <label className="col-lg-4 col-md-6 col-sm-12">
-                        RELIGION
+                        LAST NAME:
                       </label>
                       <div className="col-lg-8 col-md-6 col-sm-12 font-weight-700">
-                        {userReligion}
+                        {lastName}
                       </div>
                     </div>
-                  )}
-                  <div className="d-flex m-b-10 margin_bottom font_size">
-                    <label className="col-lg-4 col-md-6 col-sm-12">
-                      PLACE OF BIRTH
-                    </label>
-                    <div className="col-lg-8 col-md-6 col-sm-12 font-weight-700">
-                      {_city}
-                    </div>
-                  </div>
-                  {_state && (
                     <div className="d-flex m-b-10 margin_bottom font_size">
                       <label className="col-lg-4 col-md-6 col-sm-12">
-                        STATE OF ORIGIN
+                        PHONE NUMBER:
                       </label>
                       <div className="col-lg-8 col-md-6 col-sm-12 font-weight-700">
-                        {_state}
+                        {telNumber1}
                       </div>
                     </div>
-                  )}
-                  {_lga && (
+                    {telNumber2 && (
+                      <div className="d-flex m-b-10 margin_bottom font_size">
+                        <label className="col-lg-4 col-md-6 col-sm-12">
+                          ALTERNATE PHONE NUMBER:
+                        </label>
+                        <div className="col-lg-8 col-md-6 col-sm-12 font-weight-700">
+                          {telNumber2}
+                        </div>
+                      </div>
+                    )}
                     <div className="d-flex m-b-10 margin_bottom font_size">
                       <label className="col-lg-4 col-md-6 col-sm-12">
-                        L.G.A
+                        EMAIL
+                      </label>
+                      <div className="col-lg-8 col-md-6 col-sm-12 font-weight-700">
+                        {emailAddress}
+                      </div>
+                    </div>
+                    <div className="d-flex m-b-10 margin_bottom font_size">
+                      <label className="col-lg-4 col-md-6 col-sm-12">
+                        MOTHERS MAIDEN NAME
+                      </label>
+                      <div className="col-lg-8 col-md-6 col-sm-12 font-weight-700">
+                        {motherMaidenName}
+                      </div>
+                    </div>
+                    <div className="d-flex m-b-10 margin_bottom font_size">
+                      <label className="col-lg-4 col-md-6 col-sm-12">
+                        DATE OF BIRTH
+                      </label>
+                      <div className="col-lg-8 col-md-6 col-sm-12 font-weight-700">
+                        {dateofBirth}
+                      </div>
+                    </div>
+                    {_gender && (
+                      <div className="d-flex m-b-10 margin_bottom font_size">
+                        <label className="col-lg-4 col-md-6 col-sm-12">
+                          GENDER
+                        </label>
+                        <div className="col-lg-8 col-md-6 col-sm-12 font-weight-700">
+                          {_gender}
+                        </div>
+                      </div>
+                    )}
+                    {/* <div className="d-flex m-b-10 margin_bottom font_size">
+                      <label className="col-lg-4 col-md-6 col-sm-12">
+                        MARITAL STATUS
+                      </label>
+                      <div className="col-lg-8 col-md-6 col-sm-12 font-weight-700">
+                        {status}
+                      </div>
+                    </div> */}
+                    {userReligion && (
+                      <div className="d-flex m-b-10 margin_bottom font_size">
+                        <label className="col-lg-4 col-md-6 col-sm-12">
+                          RELIGION
+                        </label>
+                        <div className="col-lg-8 col-md-6 col-sm-12 font-weight-700">
+                          {userReligion}
+                        </div>
+                      </div>
+                    )}
+                    <div className="d-flex m-b-10 margin_bottom font_size">
+                      <label className="col-lg-4 col-md-6 col-sm-12">
+                        PLACE OF BIRTH
+                      </label>
+                      <div className="col-lg-8 col-md-6 col-sm-12 font-weight-700">
+                        {_city}
+                      </div>
+                    </div>
+                    {_state && (
+                      <div className="d-flex m-b-10 margin_bottom font_size">
+                        <label className="col-lg-4 col-md-6 col-sm-12">
+                          STATE OF ORIGIN
+                        </label>
+                        <div className="col-lg-8 col-md-6 col-sm-12 font-weight-700">
+                          {_state}
+                        </div>
+                      </div>
+                    )}
+                    {_lga && (
+                      <div className="d-flex m-b-10 margin_bottom font_size">
+                        <label className="col-lg-4 col-md-6 col-sm-12">
+                          L.G.A
+                        </label>
+                        <div className="col-lg-8 col-md-6 col-sm-12 font-weight-700">
+                          {_lga}
+                        </div>
+                      </div>
+                    )}
+                    <div className="d-flex m-b-10 margin_bottom font_size">
+                      <label className="col-lg-4 col-md-6 col-sm-12">
+                        NATIONALITY
+                      </label>
+                      <div className="col-lg-8 col-md-6 col-sm-12 font-weight-700">
+                        {nationality}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* <!-- OTHER DETAILS --> */}
+                <div className="m-t-20 col-lg-6">
+                  <h5>OTHER INFORMATION</h5>
+                  <div className="card col-lg-12">
+                    {/* <!-- ADDRESS DETAILS --> */}
+                    <div className="m-t-30 m-b-20">
+                      <h6>ADDRESS DETAILS</h6>
+                    </div>
+                    <div className="d-flex m-b-10 margin_bottom font_size">
+                      <label className="col-lg-4 col-md-6 col-sm-12">
+                        RESIDENTIAL ADDRESS:
+                      </label>
+                      <div className="col-lg-8 col-md-6 col-sm-12 font-weight-700">
+                        {address1}
+                      </div>
+                    </div>
+                    <div className="d-flex m-b-10 margin_bottom font_size">
+                      <label className="col-lg-4 col-md-6 col-sm-12">
+                        L.G.A:
                       </label>
                       <div className="col-lg-8 col-md-6 col-sm-12 font-weight-700">
                         {_lga}
                       </div>
                     </div>
-                  )}
-                  <div className="d-flex m-b-10 margin_bottom font_size">
-                    <label className="col-lg-4 col-md-6 col-sm-12">
-                      NATIONALITY
-                    </label>
-                    <div className="col-lg-8 col-md-6 col-sm-12 font-weight-700">
-                      {nationality}
+                    {userStateOfResidence && (
+                      <div className="d-flex m-b-10 margin_bottom font_size">
+                        <label className="col-lg-4 col-md-6 col-sm-12">
+                          STATE OF RESIDENCE:
+                        </label>
+                        <div className="col-lg-8 col-md-6 col-sm-12 font-weight-700">
+                          {userStateOfResidence}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                  {/* <!-- MEANS OF IDENTIFICATION --> */}
+                  <div className="card col-lg-12">
+                    <div className="m-t-30 m-b-20">
+                      <h6>MEANS OF IDENTIFICATION</h6>
                     </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* <!-- OTHER DETAILS --> */}
-              <div className="m-t-20 col-lg-6">
-                <h5>OTHER INFORMATION</h5>
-                <div className="card col-lg-12">
-                  {/* <!-- ADDRESS DETAILS --> */}
-                  <div className="m-t-30 m-b-20">
-                    <h6>ADDRESS DETAILS</h6>
-                  </div>
-                  <div className="d-flex m-b-10 margin_bottom font_size">
-                    <label className="col-lg-4 col-md-6 col-sm-12">
-                      RESIDENTIAL ADDRESS:
-                    </label>
-                    <div className="col-lg-8 col-md-6 col-sm-12 font-weight-700">
-                      {address1}
-                    </div>
-                  </div>
-                  <div className="d-flex m-b-10 margin_bottom font_size">
-                    <label className="col-lg-4 col-md-6 col-sm-12">
-                      L.G.A:
-                    </label>
-                    <div className="col-lg-8 col-md-6 col-sm-12 font-weight-700">
-                      {_lga}
-                    </div>
-                  </div>
-                  {userStateOfResidence && (
-                    <div className="d-flex m-b-10 margin_bottom font_size">
+                    {/* <div className="d-flex m-b-10 margin_bottom font_size">
                       <label className="col-lg-4 col-md-6 col-sm-12">
-                        STATE OF RESIDENCE:
+                        DOCUMENT UPLOADED:
                       </label>
                       <div className="col-lg-8 col-md-6 col-sm-12 font-weight-700">
-                        {userStateOfResidence}
+                        {docType}
+                      </div>
+                    </div> */}
+                    <div className="d-flex m-b-10 margin_bottom font_size">
+                      <label className="col-lg-4 col-md-6 col-sm-12">
+                        ID NUMBER:
+                      </label>
+                      <div className="col-lg-8 col-md-6 col-sm-12 font-weight-700">
+                        {idNumber}
                       </div>
                     </div>
-                  )}
-                </div>
-                {/* <!-- MEANS OF IDENTIFICATION --> */}
-                <div className="card col-lg-12">
-                  <div className="m-t-30 m-b-20">
-                    <h6>MEANS OF IDENTIFICATION</h6>
-                  </div>
-                  <div className="d-flex m-b-10 margin_bottom font_size">
-                    <label className="col-lg-4 col-md-6 col-sm-12">
-                      DOCUMENT UPLOADED:
-                    </label>
-                    <div className="col-lg-8 col-md-6 col-sm-12 font-weight-700">
-                      {/* {docType} */}
+                    <div className="d-flex m-b-10 margin_bottom font_size">
+                      <label className="col-lg-4 col-md-6 col-sm-12">
+                        DATE OF ISSUE
+                      </label>
+                      <div className="col-lg-8 col-md-6 col-sm-12 font-weight-700">
+                        {dateOfIssue}
+                      </div>
+                    </div>
+                    <div className="d-flex m-b-10 margin_bottom font_size">
+                      <label className="col-lg-4 col-md-6 col-sm-12">
+                        EXPIRY DATE
+                      </label>
+                      <div className="col-lg-8 col-md-6 col-sm-12 font-weight-700">
+                        {expireDate}
+                      </div>
                     </div>
                   </div>
-                  <div className="d-flex m-b-10 margin_bottom font_size">
-                    <label className="col-lg-4 col-md-6 col-sm-12">
-                      ID NUMBER:
-                    </label>
-                    <div className="col-lg-8 col-md-6 col-sm-12 font-weight-700">
-                      {idNumber}
-                    </div>
-                  </div>
-                  <div className="d-flex m-b-10 margin_bottom font_size">
-                    <label className="col-lg-4 col-md-6 col-sm-12">
-                      DATE OF ISSUE
-                    </label>
-                    <div className="col-lg-8 col-md-6 col-sm-12 font-weight-700">
-                      {dateOfIssue}
-                    </div>
-                  </div>
-                  <div className="d-flex m-b-10 margin_bottom font_size">
-                    <label className="col-lg-4 col-md-6 col-sm-12">
-                      EXPIRY DATE
-                    </label>
-                    <div className="col-lg-8 col-md-6 col-sm-12 font-weight-700">
-                      {expireDate}
-                    </div>
-                  </div>
-                </div>
 
-                {/* <!-- ACCOUNT SPECIFICATIONS --> */}
-                {/* <div className="card col-lg-12">
+                  {/* <!-- ACCOUNT SPECIFICATIONS --> */}
+                  {/* <div className="card col-lg-12">
                   <div className="m-t-30 m-b-20">
                     <h6>ACCOUNT SPECIFICATIONS</h6>
                   </div>
@@ -388,280 +424,281 @@ export default function REVIEW() {
                   </div>
                 </div> */}
 
-                {/* <!-- NEXT OF KIN --> */}
-                <div className="card col-lg-12">
-                  <div className="m-t-30 m-b-20">
-                    <h6>NEXT OF KIN</h6>
-                  </div>
-                  <div className="d-flex m-b-10 margin_bottom font_size">
-                    <label className="col-lg-4 col-md-6 col-sm-12">
-                      SURNAME:
-                    </label>
-                    <div className="col-lg-8 col-md-6 col-sm-12 font-weight-700">
-                      {detailOfNextKinRequest?.surName}
+                  {/* <!-- NEXT OF KIN --> */}
+                  <div className="card col-lg-12">
+                    <div className="m-t-30 m-b-20">
+                      <h6>NEXT OF KIN</h6>
                     </div>
-                  </div>
-                  <div className="d-flex m-b-10 margin_bottom font_size">
-                    <label className="col-lg-4 col-md-6 col-sm-12">
-                      FIRST NAME:
-                    </label>
-                    <div className="col-lg-8 col-md-6 col-sm-12 font-weight-700">
-                      {detailOfNextKinRequest?.firstName}
+                    <div className="d-flex m-b-10 margin_bottom font_size">
+                      <label className="col-lg-4 col-md-6 col-sm-12">
+                        SURNAME:
+                      </label>
+                      <div className="col-lg-8 col-md-6 col-sm-12 font-weight-700">
+                        {detailOfNextKinRequest?.surName}
+                      </div>
                     </div>
-                  </div>
-                  <div className="d-flex m-b-10 margin_bottom font_size">
-                    <label className="col-lg-4 col-md-6 col-sm-12">
-                      PHONE NUMBER:
-                    </label>
-                    <div className="col-lg-8 col-md-6 col-sm-12 font-weight-700">
-                      {detailOfNextKinRequest?.phone1}
+                    <div className="d-flex m-b-10 margin_bottom font_size">
+                      <label className="col-lg-4 col-md-6 col-sm-12">
+                        FIRST NAME:
+                      </label>
+                      <div className="col-lg-8 col-md-6 col-sm-12 font-weight-700">
+                        {detailOfNextKinRequest?.firstName}
+                      </div>
                     </div>
-                  </div>
-                  <div className="d-flex m-b-10 margin_bottom font_size">
-                    <label className="col-lg-4 col-md-6 col-sm-12">
-                      EMAIL:
-                    </label>
-                    <div className="col-lg-8 col-md-6 col-sm-12 font-weight-700">
-                      {detailOfNextKinRequest?.email}
+                    <div className="d-flex m-b-10 margin_bottom font_size">
+                      <label className="col-lg-4 col-md-6 col-sm-12">
+                        PHONE NUMBER:
+                      </label>
+                      <div className="col-lg-8 col-md-6 col-sm-12 font-weight-700">
+                        {detailOfNextKinRequest?.phone1}
+                      </div>
                     </div>
-                  </div>
-                  <div className="d-flex m-b-10 margin_bottom font_size">
-                    <label className="col-lg-4 col-md-6 col-sm-12">
-                      RELATIONSHIP:
-                    </label>
-                    <div className="col-lg-8 col-md-6 col-sm-12 font-weight-700">
-                      {detailOfNextKinRequest?.relationship}
+                    <div className="d-flex m-b-10 margin_bottom font_size">
+                      <label className="col-lg-4 col-md-6 col-sm-12">
+                        EMAIL:
+                      </label>
+                      <div className="col-lg-8 col-md-6 col-sm-12 font-weight-700">
+                        {detailOfNextKinRequest?.email}
+                      </div>
                     </div>
-                  </div>
-                  <div className="d-flex m-b-10 margin_bottom font_size">
-                    <label className="col-lg-4 col-md-6 col-sm-12">
-                      RESIDENTIAL ADDRESS:
-                    </label>
-                    <div className="col-lg-8 col-md-6 col-sm-12 font-weight-700">
-                      {detailOfNextKinRequest?.residentialAddress}
+                    <div className="d-flex m-b-10 margin_bottom font_size">
+                      <label className="col-lg-4 col-md-6 col-sm-12">
+                        RELATIONSHIP:
+                      </label>
+                      <div className="col-lg-8 col-md-6 col-sm-12 font-weight-700">
+                        {detailOfNextKinRequest?.relationship}
+                      </div>
                     </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="row">
-              {/* <!-- EMPLOYMENT DETAILS --> */}
-              <div className="m-t-20 col-lg-6">
-                <div className="card col-lg-12">
-                  <div className="m-t-30 m-b-20">
-                    <h6>EMPLOYMENT DETAILS</h6>
-                  </div>
-                  <div className="d-flex m-b-10 margin_bottom font_size">
-                    <label className="col-lg-4 col-md-6 col-sm-12">
-                      EMPLOYMENT STATUS:
-                    </label>
-                    <div className="col-lg-8 col-md-6 col-sm-12 font-weight-700">
-                      {employmentDetialRequest?.employmentStatus}
-                    </div>
-                  </div>
-                  <div className="d-flex m-b-10 margin_bottom font_size">
-                    <label className="col-lg-4 col-md-6 col-sm-12">
-                      ANNUAL SALARY / EXPECTED INCOME:
-                    </label>
-                    <div className="col-lg-8 col-md-6 col-sm-12 font-weight-700">
-                      {employmentDetialRequest?.annualSalary}
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* <!-- ACCOUNT SERVICES REQUIRED --> */}
-              <div className="m-t-20 col-lg-6">
-                <div className="card col-lg-12">
-                  <div className="m-t-30 m-b-20">
-                    <h6>ACCOUNT SERVICES REQUIRED</h6>
-                  </div>
-                  <div className="d-flex m-b-10 margin_bottom font_size">
-                    <label className="col-lg-4 col-md-6 col-sm-12">
-                      ELECTRONIC BANKING PREFERENCES:
-                    </label>
-                    <div className="col-lg-8 col-md-6 col-sm-12 font-weight-700">
-                      {transactionAlertPreference?.emailAlert && (
-                        <span>{transactionAlertPreference?.emailAlert}</span>
-                      )}
-
-                      {transactionAlertPreference?.smsAlert && (
-                        <span>{transactionAlertPreference?.smsAlert}</span>
-                      )}
-                    </div>
-                  </div>
-                  <div className="d-flex m-b-10 margin_bottom font_size">
-                    <label className="col-lg-4 col-md-6 col-sm-12">
-                      TRANSACTION ALERT PREFERENCES:
-                    </label>
-                    <div className="col-lg-8 col-md-6 col-sm-12 font-weight-700">
-                      <div>
-                        {electronicBankPreference?.debitCard && (
-                          <span>{electronicBankPreference?.debitCard}</span>
-                        )}{" "}
-                        {electronicBankPreference?.mobileMoney && (
-                          <span>{electronicBankPreference?.mobileMoney}</span>
-                        )}{" "}
-                        {electronicBankPreference?.internetBanking && (
-                          <span>
-                            {electronicBankPreference?.internetBanking}
-                          </span>
-                        )}
+                    <div className="d-flex m-b-10 margin_bottom font_size">
+                      <label className="col-lg-4 col-md-6 col-sm-12">
+                        RESIDENTIAL ADDRESS:
+                      </label>
+                      <div className="col-lg-8 col-md-6 col-sm-12 font-weight-700">
+                        {detailOfNextKinRequest?.residentialAddress}
                       </div>
                     </div>
                   </div>
                 </div>
               </div>
 
-              {/* <!-- REFERENCE 1 --> */}
-              <div className="m-t-20 col-lg-6">
-                <div className="card col-lg-12">
-                  <div className="m-t-30 m-b-20">
-                    <h6>REFERENCE FORM 1</h6>
-                  </div>
-                  <div className="d-flex m-b-10 margin_bottom font_size">
-                    <label className="col-lg-4 col-md-6 col-sm-12">
-                      FULL NAME:
-                    </label>
-                    <div className="col-lg-8 col-md-6 col-sm-12 font-weight-700">
-                      {reference1.fullName}
+              <div className="row">
+                {/* <!-- EMPLOYMENT DETAILS --> */}
+                <div className="m-t-20 col-lg-6">
+                  <div className="card col-lg-12">
+                    <div className="m-t-30 m-b-20">
+                      <h6>EMPLOYMENT DETAILS</h6>
                     </div>
-                  </div>
-                  <div className="d-flex m-b-10 margin_bottom font_size">
-                    <label className="col-lg-4 col-md-6 col-sm-12">
-                      PHONE NUMBER:
-                    </label>
-                    <div className="col-lg-8 col-md-6 col-sm-12 font-weight-700">
-                      {reference1.phone}
+                    <div className="d-flex m-b-10 margin_bottom font_size">
+                      <label className="col-lg-4 col-md-6 col-sm-12">
+                        EMPLOYMENT STATUS:
+                      </label>
+                      <div className="col-lg-8 col-md-6 col-sm-12 font-weight-700">
+                        {employmentDetialRequest?.employmentStatus}
+                      </div>
                     </div>
-                  </div>
-                  <div className="d-flex m-b-10 margin_bottom font_size">
-                    <label className="col-lg-4 col-md-6 col-sm-12">
-                      EMAIL:
-                    </label>
-                    <div className="col-lg-8 col-md-6 col-sm-12 font-weight-700">
-                      {reference1.email}
+                    <div className="d-flex m-b-10 margin_bottom font_size">
+                      <label className="col-lg-4 col-md-6 col-sm-12">
+                        ANNUAL SALARY / EXPECTED INCOME:
+                      </label>
+                      <div className="col-lg-8 col-md-6 col-sm-12 font-weight-700">
+                        {employmentDetialRequest?.annualSalary}
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
 
-              {/* <!-- REFERENCE 2 --> */}
-              <div className="m-t-20 col-lg-6">
-                <div className="card col-lg-12">
-                  <div className="m-t-30 m-b-20">
-                    <h6>REFERENCE FORM 2</h6>
-                  </div>
-                  <div className="d-flex m-b-10 margin_bottom font_size">
-                    <label className="col-lg-4 col-md-6 col-sm-12">
-                      FULL NAME:
-                    </label>
-                    <div className="col-lg-8 col-md-6 col-sm-12 font-weight-700">
-                      {reference2.fullName}
+                {/* <!-- ACCOUNT SERVICES REQUIRED --> */}
+                <div className="m-t-20 col-lg-6">
+                  <div className="card col-lg-12">
+                    <div className="m-t-30 m-b-20">
+                      <h6>ACCOUNT SERVICES REQUIRED</h6>
+                    </div>
+                    <div className="d-flex m-b-10 margin_bottom font_size">
+                      <label className="col-lg-4 col-md-6 col-sm-12">
+                        ELECTRONIC BANKING PREFERENCES:
+                      </label>
+                      <div className="col-lg-8 col-md-6 col-sm-12 font-weight-700">
+                        {transactionAlertPreference?.emailAlert && (
+                          <span>{transactionAlertPreference?.emailAlert}</span>
+                        )}
+
+                        {transactionAlertPreference?.smsAlert && (
+                          <span>{transactionAlertPreference?.smsAlert}</span>
+                        )}
+                      </div>
+                    </div>
+                    <div className="d-flex m-b-10 margin_bottom font_size">
+                      <label className="col-lg-4 col-md-6 col-sm-12">
+                        TRANSACTION ALERT PREFERENCES:
+                      </label>
+                      <div className="col-lg-8 col-md-6 col-sm-12 font-weight-700">
+                        <div>
+                          {electronicBankPreference?.debitCard && (
+                            <span>{electronicBankPreference?.debitCard}</span>
+                          )}{" "}
+                          {electronicBankPreference?.mobileMoney && (
+                            <span>{electronicBankPreference?.mobileMoney}</span>
+                          )}{" "}
+                          {electronicBankPreference?.internetBanking && (
+                            <span>
+                              {electronicBankPreference?.internetBanking}
+                            </span>
+                          )}
+                        </div>
+                      </div>
                     </div>
                   </div>
-                  <div className="d-flex m-b-10 margin_bottom font_size">
-                    <label className="col-lg-4 col-md-6 col-sm-12">
-                      PHONE NUMBER:
-                    </label>
-                    <div className="col-lg-8 col-md-6 col-sm-12 font-weight-700">
-                      {reference2.phone}
+                </div>
+
+                {/* <!-- REFERENCE 1 --> */}
+                <div className="m-t-20 col-lg-6">
+                  <div className="card col-lg-12">
+                    <div className="m-t-30 m-b-20">
+                      <h6>REFERENCE FORM 1</h6>
+                    </div>
+                    <div className="d-flex m-b-10 margin_bottom font_size">
+                      <label className="col-lg-4 col-md-6 col-sm-12">
+                        FULL NAME:
+                      </label>
+                      <div className="col-lg-8 col-md-6 col-sm-12 font-weight-700">
+                        {reference1.fullName}
+                      </div>
+                    </div>
+                    <div className="d-flex m-b-10 margin_bottom font_size">
+                      <label className="col-lg-4 col-md-6 col-sm-12">
+                        PHONE NUMBER:
+                      </label>
+                      <div className="col-lg-8 col-md-6 col-sm-12 font-weight-700">
+                        {reference1.phone}
+                      </div>
+                    </div>
+                    <div className="d-flex m-b-10 margin_bottom font_size">
+                      <label className="col-lg-4 col-md-6 col-sm-12">
+                        EMAIL:
+                      </label>
+                      <div className="col-lg-8 col-md-6 col-sm-12 font-weight-700">
+                        {reference1.email}
+                      </div>
                     </div>
                   </div>
-                  <div className="d-flex m-b-10 margin_bottom font_size">
-                    <label className="col-lg-4 col-md-6 col-sm-12">
-                      EMAIL:
-                    </label>
-                    <div className="col-lg-8 col-md-6 col-sm-12 font-weight-700">
-                      {reference2.email}
+                </div>
+
+                {/* <!-- REFERENCE 2 --> */}
+                <div className="m-t-20 col-lg-6">
+                  <div className="card col-lg-12">
+                    <div className="m-t-30 m-b-20">
+                      <h6>REFERENCE FORM 2</h6>
+                    </div>
+                    <div className="d-flex m-b-10 margin_bottom font_size">
+                      <label className="col-lg-4 col-md-6 col-sm-12">
+                        FULL NAME:
+                      </label>
+                      <div className="col-lg-8 col-md-6 col-sm-12 font-weight-700">
+                        {reference2.fullName}
+                      </div>
+                    </div>
+                    <div className="d-flex m-b-10 margin_bottom font_size">
+                      <label className="col-lg-4 col-md-6 col-sm-12">
+                        PHONE NUMBER:
+                      </label>
+                      <div className="col-lg-8 col-md-6 col-sm-12 font-weight-700">
+                        {reference2.phone}
+                      </div>
+                    </div>
+                    <div className="d-flex m-b-10 margin_bottom font_size">
+                      <label className="col-lg-4 col-md-6 col-sm-12">
+                        EMAIL:
+                      </label>
+                      <div className="col-lg-8 col-md-6 col-sm-12 font-weight-700">
+                        {reference2.email}
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
 
-              {/* <!-- ATTACHED DOCUMENTS TABLE --> */}
-              <div className="form-group col-lg-6 col-md-12 col-sm-12 font-weight-700">
-                <div className="header">
-                  <h5>Attached Documents</h5>
-                </div>
-                <div className="table-responsive border">
-                  <table className="table table-hover mb-0 c_list">
-                    <thead style={{ backgroundColor: "#c4c4c4" }}>
-                      <tr>
-                        <th>S/N</th>
-                        <th>TITLE</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {uploadDocumentRequest.map((item, index) => {
-                        return (
-                          <tr key={index + 1}>
-                            <td>{index + 1}</td>
-                            <td>{item.docTypeName}</td>
-                          </tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-
-              {/* <!-- AGREEMENTS CHECKBOX --> */}
-              <div className="form-group col-lg-12 col-md-12 col-sm-12 font-weight-500 m-t-20">
-                <div className="form-check pl-4 form-check-inline">
-                  <input
-                    checked={isChecked}
-                    onChange={handleCheck}
-                    className="form-check-input mt-1"
-                    type="checkbox"
-                    name="inlineRadioOptions"
-                    id="inlineRadio2"
-                    value="option2"
-                  />
-                  <label className="pt-3 pl-1">
-                    I agree to the{" "}
-                    <a
-                      href="#"
-                      style={{ textDecoration: "underline", color: "red" }}
-                    >
-                      SunTrust Bank Terms and Conditions
-                    </a>
-                  </label>
-                </div>
-                <p id="error-checkbox"></p>
-              </div>
-
-              <div className="form-group col-lg-12 col-md-12 col-sm-12 m-b-20">
-                <div className="d-flex align-items-center justify-content-center m-t-20">
-                  <div className="user_acct_details col-lg-2 col-md-6 col-sm-12">
-                    <button
-                      type="button"
-                      onClick={() => dispatch(handlePrevious())}
-                      className="btn btn-block btn-suntrust font-weight-900"
-                    >
-                      PREVIOUS PAGE
-                    </button>
+                {/* <!-- ATTACHED DOCUMENTS TABLE --> */}
+                <div className="form-group col-lg-6 col-md-12 col-sm-12 font-weight-700">
+                  <div className="header">
+                    <h5>Attached Documents</h5>
                   </div>
+                  <div className="table-responsive border">
+                    <table className="table table-hover mb-0 c_list">
+                      <thead style={{ backgroundColor: "#c4c4c4" }}>
+                        <tr>
+                          <th>S/N</th>
+                          <th>TITLE</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {uploadDocumentRequest.map((item, index) => {
+                          return (
+                            <tr key={index + 1}>
+                              <td>{index + 1}</td>
+                              <td>{item.docTypeName}</td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
 
-                  <div className="user_acct_details col-lg-2 col-md-6 col-sm-12">
-                    <button
-                      disabled={!isChecked}
-                      type="button"
-                      onClick={submitHandler}
-                      className="btn btn-block btn-suntrust font-weight-900"
-                    >
-                      {isLoading ? <Loader /> : "Submit"}
-                    </button>
+                {/* <!-- AGREEMENTS CHECKBOX --> */}
+                <div className="form-group col-lg-12 col-md-12 col-sm-12 font-weight-500 m-t-20">
+                  <div className="form-check pl-4 form-check-inline">
+                    <input
+                      checked={isChecked}
+                      onChange={handleCheck}
+                      className="form-check-input mt-1"
+                      type="checkbox"
+                      name="inlineRadioOptions"
+                      id="inlineRadio2"
+                      value="option2"
+                    />
+                    <label className="pt-3 pl-1">
+                      I agree to the{" "}
+                      <a
+                        href="#"
+                        style={{ textDecoration: "underline", color: "red" }}
+                      >
+                        SunTrust Bank Terms and Conditions
+                      </a>
+                    </label>
+                  </div>
+                  <p id="error-checkbox"></p>
+                </div>
+
+                <div className="form-group col-lg-12 col-md-12 col-sm-12 m-b-20">
+                  <div className="d-flex align-items-center justify-content-center m-t-20">
+                    <div className="user_acct_details col-lg-2 col-md-6 col-sm-12">
+                      <button
+                        type="button"
+                        onClick={() => dispatch(handlePrevious())}
+                        className="btn btn-block btn-suntrust font-weight-900"
+                      >
+                        PREVIOUS PAGE
+                      </button>
+                    </div>
+
+                    <div className="user_acct_details col-lg-2 col-md-6 col-sm-12">
+                      <button
+                        disabled={!isChecked}
+                        type="button"
+                        onClick={submitHandler}
+                        className="btn btn-block btn-suntrust font-weight-900"
+                      >
+                        {isLoading ? <Loader /> : "Submit"}
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
-          </div>
-        ) : (
-          <AccountOpenSuccessPage />
-        )}
+          ) : (
+            ""
+          )}
+        </div>
       </div>
-    </div>
+    </>
   );
 }
