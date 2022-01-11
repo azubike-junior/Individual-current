@@ -19,7 +19,7 @@ function App() {
         <Switch>
           <Suspense fallback={Loader}>
             {/* <Route path="/savings_success" exact component={AccountOpenSuccessPage} /> */}
-            <Route path="/" exact component={CompleteSavingsPage} />
+            <Route path="/OpenIndividualCurrentAccount" exact component={CompleteSavingsPage} />
           </Suspense>
         </Switch>
         {/* <Footer /> */}

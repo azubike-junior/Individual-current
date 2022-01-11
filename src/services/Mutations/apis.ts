@@ -26,7 +26,7 @@ const initialState: initState = {
 export const validateBvnAndOtp = createApi({
   reducerPath: "validateBvnAndOtp",
   baseQuery: fetchBaseQuery({
-    baseUrl: `http://10.11.200.97/BvnValidationsApi/Validations`,
+    baseUrl: `http://10.11.200.98/BvnValidationsApi/Validations`,
   }),
 
   endpoints: (builder) => ({
@@ -51,7 +51,7 @@ export const validateBvnAndOtp = createApi({
 export const individualCurrent = createApi({
   reducerPath: "individualCurrent",
   baseQuery: fetchBaseQuery({
-    baseUrl: `http://10.11.200.97/accountopening/api/v1/AccountOpening/`,
+    baseUrl: `http://10.11.200.98/accountopening/api/v1/AccountOpening/`,
     prepareHeaders: (headers) => {
       const token =
         "4I[PdB7l&/omZT[o.wG^v!<Nni%ANMkSW'+U^5>HepGZ9Nm1xox}#%<?Zx3/7O]";
@@ -78,7 +78,7 @@ export const addBvn = createAsyncThunk(
   async (bvn: any, { rejectWithValue }) => {
     try {
       const response = await axios.post(
-        `http://10.11.200.97/BvnValidationsApi/Validations/ValidateBvn`,
+        `http://10.11.200.98/BvnValidationsApi/Validations/ValidateBvn`,
         { bvn }
       );
       if (response.data.responseCode === "00") {

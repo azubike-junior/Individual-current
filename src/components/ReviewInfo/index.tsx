@@ -126,10 +126,6 @@ export default function REVIEW() {
       dateofBirth,
       ...rest
     } = allData.data;
-    // const data = {
-    //   dateofBirth: convertDateToNum(dateofBirth ? dateofBirth : ""),
-    //   ...rest,
-    // };
 
     const newData = {
       religion: rest.religion + " " + userReligion,
@@ -137,18 +133,15 @@ export default function REVIEW() {
       lga: rest.lga + " " + _lga,
       city: rest.city + " " + _city,
       dateofBirth: convertDateToNum(dateofBirth ? dateofBirth : ""),
-      bvn: "63738293740",
     };
 
-    const { state, lga, city, religion, bvn, ...remainingData } = rest;
+    const { state, lga, city, religion, ...remainingData } = rest;
     const dataToSubmit = { ...remainingData, ...newData };
     console.log("dataToSubmit", dataToSubmit);
 
     openIndividualCurrent(dataToSubmit);
     localStorage.clear();
   };
-
-  console.log(">>>>>somrin", responseData, isSuccess, isError);
 
   return (
     <>

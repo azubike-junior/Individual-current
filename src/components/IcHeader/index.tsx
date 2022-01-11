@@ -18,21 +18,7 @@ export default function CsHeader({currentStep}: any) {
                 <img src={logo} alt="" />
               </a>
 
-              {/* <button
-                className="navbar-toggler ref"
-                type="button"
-                data-bs-toggle="collapse"
-                aria-controls="navbarSupportedContent"
-                aria-expanded="false"
-                aria-label="Toggle navigation"
-              >
-                <span className="navbar-toggler-icon"></span>
-              </button> */}
-
-              {/* <div
-                className="collapse navbar-collapse ref"
-                id="navbarSupportedContent"
-              > */}
+              
                 <ul className="navbar-nav ml-auto py-4 py-md-0">
                   <li className="nav-item pl-4 pl-md-0 ml-0 ml-md-4">
                     <a
@@ -43,7 +29,7 @@ export default function CsHeader({currentStep}: any) {
                     </a>
                   </li>
                 </ul>
-              {/* </div> */}
+        
             </nav>
           </div>
         </div>
