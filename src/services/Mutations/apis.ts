@@ -14,7 +14,7 @@ interface initState {
 }
 
 const initialState: initState = {
-  page: 3,
+  page: 1,
   error: "",
   error2: "",
   isSuccessful: false,
