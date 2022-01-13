@@ -51,9 +51,7 @@ declare module "little-state-machine" {
       employmentDetialRequest?: EmploymentDetails;
       uploadDocumentRequest: UploadDetails[];
       accountServicesRequest: AccountService;
-      refereesRequests?: Reference[];
-      reference1: Reference;
-      reference2: Reference;
+      refereesRequests: Reference;
     };
   }
 }

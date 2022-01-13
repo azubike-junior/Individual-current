@@ -12,6 +12,7 @@ import CsHeader from "../../components/IcHeader";
 import AccountSpecifications from "../../components/IcAccountSpec";
 import UploadDocuments from "../../components/UploadDocuments";
 import ReviewInfo from "../../components/ReviewInfo";
+import Introduction from "../../components/Introduction";
 import { useSelector } from "react-redux";
 import { RootState } from "../../store/store";
 
@@ -50,17 +51,13 @@ createStore(
       maritalStatus: 0,
       idNumber: "",
       uploadDocumentRequest: [],
-      reference1: {
-          fullName: "",
-          email: "",
-          phone: ""
-        },
-        reference2: {
-          fullName: "",
-          email: "",
-          phone: ""
-        },
-      refereesRequests: [],
+      refereesRequests: {
+        fileUrl:"",
+        imgName:"",
+        fileExt: "",
+        uploadDocument: "",
+        refereesRequest: []
+      },
       detailOfNextKinRequest: {
         surName: "",
         firstName: "",
@@ -98,19 +95,21 @@ export default function CompleteSavingsAccount() {
 
   const displaySteps = (step: number) => {
     if (step === 1) {
-      return <CsBvnAuth />;
+      return <Introduction />;
     } else if (step === 2) {
-      return <AccountSpecifications />;
+      return <CsBvnAuth />;
     } else if (step === 3) {
-      return <UploadDocuments />;
+      return <AccountSpecifications />;
     } else if (step === 4) {
+      return <UploadDocuments />;
+    } else if (step === 5) {
       return <ReviewInfo />;
     }
   };
 
   return (
     <StateMachineProvider>
-      <div className="pb-5 overflowhidden">
+      <div className="pb-5 overflowhidden font-poppins">
         <CsHeader currentStep={page} />
         {displaySteps(page)}
       </div>

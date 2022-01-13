@@ -28,10 +28,11 @@ export default function StepProgress({ page }: any) {
       id="myTab"
       role="tablist"
     >
-      <TabIcon page={1} title="BVN AUTHENTICATION" active={page === 1} />
-      <TabIcon page={2} title="ACCOUNT SPECIFICATION" active={page === 2} />
-      <TabIcon page={3} title="UPLOAD DOCUMENTS" active={page === 3} />
-      <TabIcon page={4} title="REVIEW INFORMATION" active={page === 4} />
+      <TabIcon page={1} title="INTRODUCTION" active={page === 1} />
+      <TabIcon page={1} title="BVN AUTHENTICATION" active={page === 2} />
+      <TabIcon page={2} title="ACCOUNT SPECIFICATION" active={page === 3} />
+      <TabIcon page={3} title="UPLOAD DOCUMENTS" active={page === 4} />
+      <TabIcon page={4} title="REVIEW INFORMATION" active={page === 5} />
     </ul>
   );
 }

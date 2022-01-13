@@ -37,9 +37,7 @@ export interface CsProps {
   employmentDetialRequest?: EmploymentDetails;
   uploadDocumentRequest: UploadDetails[];
   accountServicesRequest: AccountService;
-  refereesRequests?: Reference[];
-  reference1: Reference;
-  reference2: Reference;
+  refereesRequests: Reference;
 }
 
 export interface DataProps {
@@ -103,17 +101,19 @@ export interface EmploymentDetails {
   annualSalary: string;
 }
 
-export interface Refer {
-  reference1: Reference;
-  reference2: Reference;
-}
-
 export interface Reference {
-  fullName: string;
-  email: string;
-  phone: string;
+  fileExt?: string;
+  imgName?: string;
+  fileUrl?: string;
+  uploadDocument?: string;
+  refereesRequest: refereeRequest[];
 }
 
+interface refereeRequest {
+  bankName: string;
+  accountName: string;
+  accountNumber: string;
+}
 
 export interface FetchArgs extends RequestInit {
   url: string;

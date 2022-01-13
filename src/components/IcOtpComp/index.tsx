@@ -105,18 +105,17 @@ export default function OtpLayer({ data }: any) {
         value={otp}
         onChange={(e) => setOtp(e.target.value)}
       />
-      <button
+      <div
         style={{ border: "none", cursor: "pointer" }}
         className="bvn mt-2 text-success"
         onClick={() => smsService(300000)}
       >
         Resend OTP
-      </button>
+      </div>
       <div className="d-flex align-items-center justify-content-center m-t-20">
         <button
           className="btn bvn-gray col-lg-6 col-md-3 col-sm-12 shadow-sm bg-body rounded"
           type="submit"
-          // onClick={handleNext}
         >
           {loading ? <Loader /> : "Verify"}
         </button>

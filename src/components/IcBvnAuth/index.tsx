@@ -3,6 +3,7 @@ import { useForm } from "react-hook-form";
 import {
   addBvn,
   handleNext,
+  handlePrevious,
   useValidateBvnMutation,
 } from "../../services/Mutations/apis";
 import Loader from "../Loader";
@@ -37,6 +38,11 @@ export default function CsBvnAuth() {
     setBvnError("");
     dispatch(addBvn(bvn));
   };
+
+   const goBack = () => {
+     window.location.reload();
+     localStorage.clear();
+   };
 
   return (
     <div className="tab-content p-30" id="myTabContent">
@@ -108,6 +114,29 @@ export default function CsBvnAuth() {
               {bvnData.responseCode === "00" && <OtpLayer data={bvnData} />}
             </div>
           </div>
+        </div>
+      </div>
+      <div className="form-group col-lg-12 col-md-12 col-sm-12 m-b-20">
+        <div className="d-flex align-items-center justify-content-center m-t-20">
+          <div className="user_acct_details col-lg-2 col-md-6 col-sm-12">
+            <button
+              type="button"
+              onClick={goBack}
+              className="btn btn-block btn-suntrust font-weight-900"
+            >
+              PREVIOUS PAGE
+            </button>
+          </div>
+
+          {/* <div className="user_acct_details col-lg-2 col-md-6 col-sm-12">
+                <button
+                  type="submit"
+                  // onClick={handleNext}
+                  className="btn btn-block btn-suntrust font-weight-900"
+                >
+                  NEXT PAGE
+                </button>
+              </div> */}
         </div>
       </div>
     </div>

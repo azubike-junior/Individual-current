@@ -1,9 +1,10 @@
 import { useStateMachine } from "little-state-machine";
-import React, { useEffect, useState } from "react";
+import React, { SyntheticEvent, useEffect, useState, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { CsProps } from "../../interfaces";
 import {
   useGetBankBranchQuery,
+  useGetBankNameQuery,
   useGetCityQuery,
   useGetLgtQuery,
   useGetStatesQuery,
@@ -20,6 +21,7 @@ import {
 import { CheckInput, HookInputField, SelectInput } from "../InputField";
 import {
   convertDateToNum,
+  getBase64,
   getText,
   getValues,
   updateName,
@@ -34,9 +36,28 @@ import {
 } from "../../services/Mutations/apis";
 import Loader from "../Loader";
 import { TransactionService } from "./../../interfaces/index";
+import {
+  FileService,
+  validateFileSize,
+  validateFileType,
+} from "../../utils/validator";
 
 export default function AccountSpecifications() {
   const dispatch = useDispatch();
+  const [fileType, setFileType] = useState("");
+  const [fileBase64, setFileBase64] = useState("");
+  const [imgName, setImageName] = useState("");
+  const [docTypeName, setDocTypeName] = useState("");
+  const [fileUrl, setFileUrl] = useState("");
+  const [refData, setRefData] = useState({
+    accountName: "",
+    accountNumber: "",
+    bankName: "",
+  });
+  const [doc, setDoc] = useState<File>();
+  const [refError, setRefError] = useState("");
+  const [uploadDocError, setUploadDocError] = useState("");
+  const [referenceFile, setReferenceFile] = useState<any>([]);
   const [internetbanking, setInternetBanking] = useState("");
   const [debitCard, setDebitCard] = useState("");
   const [mobileMoney, setMobileMoney] = useState("");
@@ -47,6 +68,8 @@ export default function AccountSpecifications() {
   const [mobileMoneyChecked, setMobileMoneyChecked] = useState(false);
   const [emailAlertChecked, setEmailAlertChecked] = useState(false);
   const [smsAlertChecked, setSmsAlertChecked] = useState(false);
+
+  const inputRef = React.useRef() as React.MutableRefObject<HTMLInputElement>;
 
   const { state, actions } = useStateMachine({ updateName });
 
@@ -149,6 +172,7 @@ export default function AccountSpecifications() {
   const { data: uploadTypes } = useGetUploadTypeQuery("");
   const { data: cities } = useGetCityQuery("");
   const { data: branches } = useGetBankBranchQuery("");
+  const { data: banks } = useGetBankNameQuery("");
   const newValue = { value: "", text: "-select-" };
 
   const {
@@ -190,9 +214,24 @@ export default function AccountSpecifications() {
     data._title = getText(titles, data.title);
     data._branchcode = getText(branches, data.branchcode);
 
+    const docsArray = data.refereesRequests.refereesRequest;
+
+    console.log(">>>>>>.refData", docsArray);
+
+    data.refereesRequests.refereesRequest.map((item) => {
+      setRefData({
+        accountName: item.accountName,
+        accountNumber: item.accountNumber,
+        bankName: item.bankName,
+      });
+    });
+
     state.data = {
       ...data,
-      refereesRequests: [data.reference1, data.reference2],
+      refereesRequests: {
+        ...state.data.refereesRequests,
+        refereesRequest: [...docsArray, refData],
+      },
       accountServicesRequest: {
         transactionAlertPreference: {
           emailAlert: transactionAlertPreference?.emailAlert,
@@ -207,19 +246,56 @@ export default function AccountSpecifications() {
       },
     };
 
+    if (!state.data.refereesRequests.fileExt) {
+      return setRefError(
+        "You need to upload the filled Reference Form to continue"
+      );
+    }
+
     actions.updateName(state.data);
     dispatch(handleNext());
-  };
 
-  // const previous = () => {
-  //   actions.updateName(emptyData);
-  //   localStorage.clear();
-  //   dispatch(handlePrevious());
-  // };
+    console.log("data", data);
+  };
 
   const goBack = () => {
     window.location.reload();
     localStorage.clear();
+  };
+
+  const handleFiles = async (e: HTMLInputElement) => {
+    const file = e.files;
+
+    console.log(">>>>file", file);
+
+    if (!file) {
+      return setUploadDocError("an image is required");
+    }
+    const validFileSize = await validateFileSize(file[0]?.size);
+
+    const validFileType = await validateFileType(
+      FileService.getFileExtension(file[0]?.name)
+    );
+
+    if (!validFileSize.isValid) {
+      setUploadDocError(validFileSize.errorMessage);
+      return;
+    }
+
+    if (!validFileType.isValid) {
+      setUploadDocError(validFileType.errorMessage);
+      return;
+    }
+    const imageUrl = URL.createObjectURL(file[0]);
+
+    setFileUrl(imageUrl);
+    setDoc(file[0]);
+    setFileType(file[0].type);
+    setImageName(file[0].name);
+    getBase64(file).then((result: any) => {
+      setFileBase64(result);
+    });
+    setUploadDocError("");
   };
 
   useEffect(() => {
@@ -228,6 +304,40 @@ export default function AccountSpecifications() {
       validateBvn(bvn);
     }
   }, []);
+
+  //submit function
+  const submitFilledReferenceForm = () => {
+    if (fileBase64 === "") {
+      return setUploadDocError("You need to choose a file ");
+    }
+
+    // if (uploadDocError) {
+    //   return;
+    // }
+
+    actions.updateName({
+      ...state.data,
+      refereesRequests: {
+        ...state.data.refereesRequests,
+        fileUrl,
+        fileExt: fileType,
+        imgName,
+        uploadDocument: fileBase64,
+      },
+    });
+
+    inputRef.current.value = "";
+  };
+
+  console.log(">>>>>state", state.data.refereesRequests, fileType, imgName);
+
+  const deleteDocument = (docType: string) => {
+    // const newFiles = state.data.refereesRequests.fileExt;
+    // actions.updateName({
+    //   ...state.data,
+    //   uploadDocumentRequest: [...newFiles],
+    // });
+  };
 
   return (
     <div
@@ -480,7 +590,7 @@ export default function AccountSpecifications() {
                 <div className="panel-heading text-center bg-gray white-text text-white font-weight-900">
                   ADDRESS DETAILS
                 </div>
-                <div className="panel-body">
+                <div className="panel-body panel-height">
                   <div className="user_bvn_data_row1 font-12">
                     <div className="col-lg-12">
                       <div className="row">
@@ -533,7 +643,7 @@ export default function AccountSpecifications() {
                 <div className="panel-heading text-center bg-gray white-text text-white font-weight-900">
                   MEANS OF IDENTIFICATION
                 </div>
-                <div className="panel-body">
+                <div className="panel-body panel-height">
                   <div className="user_bvn_data_row1 font-12">
                     <div className="col-lg-12">
                       <div className="row">
@@ -553,13 +663,13 @@ export default function AccountSpecifications() {
                         <div className="form-group col-lg-12 col-md-6 col-sm-12 font-weight-700">
                           <HookInputField
                             label="ID NUMBER"
-                            type="number"
-                            minLength={11}
+                            type="text"
+                            // minLength={11}
                             register={register}
                             errors={errors.idNumber}
-                            onInput={(e: React.ChangeEvent<HTMLInputElement>) =>
-                              (e.target.value = e.target.value.slice(0, 11))
-                            }
+                            // onInput={(e: React.ChangeEvent<HTMLInputElement>) =>
+                            //   (e.target.value = e.target.value.slice(0, 11))
+                            // }
                             required
                             placeholder="ID Number"
                             name="idNumber"
@@ -605,7 +715,7 @@ export default function AccountSpecifications() {
                 <div className="panel-heading text-center bg-gray white-text text-white font-weight-900">
                   ACCOUNT SPECIFICATIONS
                 </div>
-                <div className="panel-body">
+                <div className="panel-body panel-height">
                   <div className="user_bvn_data_row1 font-12">
                     <div className="col-lg-12">
                       <div className="row">
@@ -650,7 +760,7 @@ export default function AccountSpecifications() {
                 <div className="panel-heading text-center bg-gray white-text text-white font-weight-900">
                   NEXT OF KIN
                 </div>
-                <div className="panel-body">
+                <div className="panel-body panel-height-2">
                   <div className="user_bvn_data_row1 font-12">
                     <div className="col-lg-12">
                       <div className="row">
@@ -749,7 +859,7 @@ export default function AccountSpecifications() {
                 <div className="panel-heading text-center bg-gray white-text text-white font-weight-900">
                   EMPLOYMENT DETAILS
                 </div>
-                <div className="panel-body">
+                <div className="panel-body panel-height-3">
                   <div className="user_bvn_data_row1 font-12">
                     <div className="col-lg-12">
                       <div className="row">
@@ -783,115 +893,204 @@ export default function AccountSpecifications() {
             </div>
 
             {/* <!-- REFERENCE 1 DETAILS --> */}
-            <div className="col-lg-6">
+            <div className="col-lg-12">
               <div className="panel panel-default">
                 <div className="panel-heading text-center bg-gray white-text text-white font-weight-900">
-                  REFERENCE 1
+                  REFERENCES
                 </div>
-                <div className="panel-body">
-                  <div className="user_bvn_data_row1 font-12">
-                    <div className="col-lg-12">
-                      <div className="row">
-                        <div className="form-group col-lg-12 col-md-12 col-sm-12 font-weight-700">
-                          {/* <label>FULL NAME</label>
-                          <input name="" type="text" className="form-control m-b-10" /> */}
-                          <HookInputField
-                            name="reference1.fullName"
-                            type="text"
-                            label="FULL NAME"
-                            register={register}
-                            required
-                          />
-                        </div>
+                <div className="block d-lg-flex">
+                  <div className="panel-body">
+                    <div className="user_bvn_data_row1 font-12">
+                      <div className="col-lg-12">
+                        <div className="row">
+                          <p className="pl-3 font-weight-900">REFEREE 1</p>
 
-                        <div className="form-group col-lg-12 col-md-12 col-sm-12 font-weight-700">
-                          {/* <label>PHONE NUMBER</label>
-                          <input type="text" className="form-control m-b-10" /> */}
-                          <HookInputField
-                            name="reference1.phone"
-                            type="number"
-                            label="PHONE NUMBER"
-                            maxLength={11}
-                            register={register}
-                            onInput={(e: React.ChangeEvent<HTMLInputElement>) =>
-                              (e.target.value = e.target.value.slice(0, 11))
-                            }
-                            errors={errors.reference1?.phone}
-                            required
-                            message="phone number as to be 11 digit"
-                          />
-                        </div>
-
-                        <div className="form-group col-lg-12 col-md-12 col-sm-12 font-weight-700 m-b-50">
-                          {/* <label>EMAIL</label>
-                          <input type="text" className="form-control" /> */}
-                          <HookInputField
-                            name="reference1.email"
+                          <SelectInput
+                            className="form-group col-lg-12 col-md-6 col-sm-12 font-weight-700"
+                            name="refereesRequests.refereesRequest[0].bankName"
                             type="text"
-                            label="EMAIL"
-                            pattern={pattern2}
+                            label="BANK NAME"
+                            selectArray={getValues(banks, newValue)}
                             register={register}
                             required
-                            errors={errors.reference1?.email}
-                            message="email address is required"
                           />
+
+                          <div className="form-group col-lg-12 col-md-12 col-sm-12 font-weight-700">
+                            <HookInputField
+                              name="refereesRequests.refereesRequest[0].accountNumber"
+                              type="number"
+                              label="ACCOUNT NUMBER"
+                              maxLength={11}
+                              register={register}
+                              onInput={(
+                                e: React.ChangeEvent<HTMLInputElement>
+                              ) =>
+                                (e.target.value = e.target.value.slice(0, 10))
+                              }
+                              // errors={errors.reference1?.phone}
+                              required
+                              message="Account Number as to be 11 digit"
+                            />
+                          </div>
+
+                          <div className="form-group col-lg-12 col-md-12 col-sm-12 font-weight-700 m-b-50">
+                            <HookInputField
+                              name="refereesRequests.refereesRequest[0].accountName"
+                              type="text"
+                              label="ACCOUNT NAME"
+                              // pattern={pattern2}
+                              register={register}
+                              required
+                              // errors={errors.reference1?.email}
+                              message="Account Name is required"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="panel-body">
+                    <div className="user_bvn_data_row1 font-12">
+                      <div className="col-lg-12">
+                        <div className="row">
+                          <p className="pl-3 font-weight-900">REFEREE 2</p>
+                          <SelectInput
+                            name="refereesRequests.refereesRequest[1].bankName"
+                            className="form-group col-lg-12 col-md-6 col-sm-12 font-weight-700"
+                            type="text"
+                            label="BANK NAME"
+                            register={register}
+                            selectArray={getValues(banks, newValue)}
+                            required
+                          />
+
+                          <div className="form-group col-lg-12 col-md-12 col-sm-12 font-weight-700">
+                            <HookInputField
+                              name="refereesRequests.refereesRequest[1].accountNumber"
+                              type="number"
+                              label="ACCOUNT NUMBER"
+                              register={register}
+                              onInput={(
+                                e: React.ChangeEvent<HTMLInputElement>
+                              ) =>
+                                (e.target.value = e.target.value.slice(0, 10))
+                              }
+                              maxLength={11}
+                              message="Account Number as to be 11 digits"
+                              required
+                              // errors={errors.reference2?.phone}
+                            />
+                          </div>
+
+                          <div className="form-group col-lg-12 col-md-12 col-sm-12 font-weight-700 m-b-50">
+                            <HookInputField
+                              name="refereesRequests.refereesRequest[1].accountName"
+                              type="text"
+                              label="ACCOUNT NAME"
+                              register={register}
+                              // pattern={pattern2}
+                              required
+                              // errors={
+                              //   errors.refereesRequests?.refereesRequest[1]
+                              //     .accountName
+                              // }
+                              message="referees Account Name is required"
+                            />
+                          </div>
                         </div>
                       </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            </div>
 
-            {/* <!-- REFERENCE 2 DETAILS --> */}
-            <div className="col-lg-6">
-              <div className="panel panel-default">
-                <div className="panel-heading text-center bg-gray white-text text-white font-weight-900">
-                  REFERENCE 2
+                {refError && (
+                  <span className="text-danger d-flex py-4 justify-content-center pl-2">
+                    {refError}
+                  </span>
+                )}
+                <div className="form-group col-lg-12 font-weight-700 block d-lg-flex justify-content-center ">
+                  <label className="text-center pr-4 pt-1">
+                    UPLOAD FILLED REFERENCE FORM
+                  </label>
+
+                  <div className="border py-2 px-2 mb-4">
+                    <input
+                      ref={inputRef}
+                      type="file"
+                      onChange={(e: SyntheticEvent) =>
+                        handleFiles(e.currentTarget as HTMLInputElement)
+                      }
+                      className=""
+                    />
+                  </div>
+
+                  <div className="form-group col-lg-2">
+                    <div
+                      className="btn btn-block btn-suntrust"
+                      onClick={submitFilledReferenceForm}
+                    >
+                      SUBMIT
+                    </div>
+                  </div>
                 </div>
-                <div className="panel-body">
-                  <div className="user_bvn_data_row1 font-12">
-                    <div className="col-lg-12">
-                      <div className="row">
-                        <div className="form-group col-lg-12 col-md-12 col-sm-12 font-weight-700">
-                          <HookInputField
-                            name="reference2.fullName"
-                            type="text"
-                            label="FULL NAME"
-                            register={register}
-                            required
-                          />
-                        </div>
 
-                        <div className="form-group col-lg-12 col-md-12 col-sm-12 font-weight-700">
-                          <HookInputField
-                            name="reference2.phone"
-                            type="number"
-                            label="PHONE NUMBER"
-                            register={register}
-                            onInput={(e: React.ChangeEvent<HTMLInputElement>) =>
-                              (e.target.value = e.target.value.slice(0, 11))
-                            }
-                            maxLength={11}
-                            message="phone number as to be 11 digit"
-                            required
-                            errors={errors.reference2?.phone}
-                          />
-                        </div>
+                <div className="form-group col-lg-12 font-weight-700 d-flex justify-content-center">
+                  <div className="col-lg-7">
+                    <div className="header">
+                      <h5>Uploaded Documents</h5>
+                    </div>
+                    <div className="table-responsive border">
+                      <table className="table table-hover mb-0 c_list">
+                        <thead style={{ backgroundColor: "#c4c4c4" }}>
+                          <tr>
+                            <th>ATTACHMENT</th>
+                            <th>ACTION</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {/* {state.data.ref?.map((item: any, index: number) => {
+                            const {
+                              imgName,
 
-                        <div className="form-group col-lg-12 col-md-12 col-sm-12 font-weight-700 m-b-50">
-                          <HookInputField
-                            name="reference2.email"
-                            type="text"
-                            label="EMAIL "
-                            register={register}
-                            pattern={pattern2}
-                            required
-                            errors={errors.reference2?.email}
-                            message="email address is required"
-                          />
-                        </div>
-                      </div>
+                              fileUrl,
+                            } = item;
+                            return ( */}
+                          <tr key={1}>
+                            <td>{state.data.refereesRequests.imgName}</td>
+                            <td>
+                              {state.data.refereesRequests.fileUrl && (
+                                <button
+                                  type="button"
+                                  className="btn btn-suntrust btn-sm m-b-5 mr-4"
+                                  data-toggle="modal"
+                                  data-target="#exampleModal"
+                                >
+                                  <a
+                                    href={state.data.refereesRequests.fileUrl}
+                                    target="_blank"
+                                    style={{ color: "#fff" }}
+                                    className="px-2"
+                                  >
+                                    view
+                                  </a>
+                                </button>
+                              )}
+                              {/* {state.data.refereesRequests.imgName && (
+                                <button
+                                  type="button"
+                                  className="btn btn-danger btn-sm m-b-5"
+                                  title="Delete"
+                                  // onClick={() => deleteDocument(docType)}
+                                >
+                                  Delete
+                                </button>
+                              )} */}
+                            </td>
+                          </tr>
+                          {/* );
+                          })} */}
+                        </tbody>
+                      </table>
                     </div>
                   </div>
                 </div>
@@ -901,123 +1100,121 @@ export default function AccountSpecifications() {
         </div>
 
         {/* <!-- ACCOUNT SERVICES REQUIRED --> */}
-        <div className="col-lg-6">
+        <div className="col-lg-12">
           <div className="panel panel-default">
             <div className="panel-heading text-center bg-gray white-text text-white font-weight-900">
               ACCOUNT SERVICES REQUIRED (fees may apply)
             </div>
-            <div className="panel-body">
-              <div className="user_bvn_data_row1">
-                <div className="col-lg-12">
-                  <div className="row">
-                    <div className="form-group col-lg-12 col-md-6 col-sm-12 font-weight-700">
-                      <label>ELECTRONIC BANKING PREFERENCES</label>
-
-                      <div className="eb_pref font-12 form-group col-lg-12 col-md-6 col-sm-12">
-                        <div className=" pl-4 form-check-inline flex justify-center">
-                          <input
-                            checked={
-                              state.data.accountServicesRequest
-                                .electronicBankPreference?.internetBanking
-                                ? true
-                                : false
-                            }
-                            name="accountServiceRequest.electronicBankPreference.internetBanking"
-                            value="internetBanking"
-                            type="checkbox"
-                            className="form-check-input mt-1"
-                            onChange={handleInternetBanking}
-                            data-parsley-errors-container="#error-checkbox"
-                          />
-                          <label className="pt-3">INTERNET BANKING</label>
-                        </div>
-                        <div className=" pl-4 form-check-inline flex justify-center">
-                          <input
-                            checked={
-                              state.data.accountServicesRequest
-                                .electronicBankPreference?.debitCard
-                                ? true
-                                : false
-                            }
-                            name="accountServiceRequest.electronicBankPreference.debitCard"
-                            value="debitCard"
-                            type="checkbox"
-                            className="form-check-input mt-1"
-                            onChange={handleDebitCard}
-                            data-parsley-errors-container="#error-checkbox"
-                          />
-                          <label className="pt-3">DEBIT CARD</label>
-                        </div>
-                        <div className=" pl-4 form-check-inline flex justify-center">
-                          <input
-                            name="accountServiceRequest.electronicBankPreference.mobileMoney"
-                            checked={
-                              state.data.accountServicesRequest
-                                .electronicBankPreference?.mobileMoney
-                                ? true
-                                : false
-                            }
-                            value="mobileMoney"
-                            type="checkbox"
-                            className="form-check-input mt-1"
-                            onChange={handleMobileMoney}
-                            data-parsley-errors-container="#error-checkbox"
-                          />
-                          <label className="pt-3">MOBILE MONEY</label>
-                        </div>
-
-                        <p id="error-checkbox"></p>
-                      </div>
-                    </div>
-
-                    <div className="form-group col-lg-12 col-md-6 col-sm-12 font-weight-700">
-                      <label>TRANSACTION ALERT PREFERENCES</label>
-
-                      <div className="eb_pref font-12 form-group col-lg-12 col-md-6 col-sm-12">
-                        <div className=" pl-4 form-check-inline flex justify-center">
-                          <input
-                            name="accountServiceRequest.transactionAlertPreference.emailAlert"
-                            checked={
-                              state.data.accountServicesRequest
-                                .transactionAlertPreference?.emailAlert
-                                ? true
-                                : false
-                            }
-                            value="emailAlert"
-                            type="checkbox"
-                            className="form-check-input mt-1"
-                            onChange={handleEmailAlert}
-                            data-parsley-errors-container="#error-checkbox"
-                          />
-                          <label className="pt-3">EMAIL ALERT</label>
-                        </div>
-                        <div className=" pl-4 form-check-inline flex justify-center">
-                          <input
-                            name="accountServiceRequest.transactionAlertPreference.smsAlert"
-                            checked={
-                              state.data.accountServicesRequest
-                                .transactionAlertPreference?.smsAlert
-                                ? true
-                                : false
-                            }
-                            value="smsAlert"
-                            type="checkbox"
-                            className="form-check-input mt-1"
-                            onChange={handleSmsAlert}
-                            data-parsley-errors-container="#error-checkbox"
-                          />
-                          <label className="pt-3">SMS ALERT</label>
-                        </div>
-
-                        <p id="error-checkbox"></p>
-                      </div>
-                    </div>
+            <div className="panel-body block d-md-flex d-lg-flex">
+              <div className="form-group col-md-6">
+                <label>ELECTRONIC BANKING PREFERENCES</label>
+                <div className="eb_pref font-12 form-group col-lg-12 col-md-6 col-sm-12">
+                  <div className="form-check-inline flex justify-center">
+                    <input
+                      checked={
+                        state.data.accountServicesRequest
+                          .electronicBankPreference?.internetBanking
+                          ? true
+                          : false
+                      }
+                      name="accountServiceRequest.electronicBankPreference.internetBanking"
+                      value="internetBanking"
+                      type="checkbox"
+                      className="form-check-input mt-1"
+                      onChange={handleInternetBanking}
+                      data-parsley-errors-container="#error-checkbox"
+                    />
+                    <label className="pt-3">INTERNET BANKING</label>
                   </div>
+                  <div className="form-check-inline flex justify-center">
+                    <input
+                      checked={
+                        state.data.accountServicesRequest
+                          .electronicBankPreference?.debitCard
+                          ? true
+                          : false
+                      }
+                      name="accountServiceRequest.electronicBankPreference.debitCard"
+                      value="debitCard"
+                      type="checkbox"
+                      className="form-check-input mt-1"
+                      onChange={handleDebitCard}
+                      data-parsley-errors-container="#error-checkbox"
+                    />
+                    <label className="pt-3">DEBIT CARD</label>
+                  </div>
+                  <div className="form-check-inline flex justify-center">
+                    <input
+                      name="accountServiceRequest.electronicBankPreference.mobileMoney"
+                      checked={
+                        state.data.accountServicesRequest
+                          .electronicBankPreference?.mobileMoney
+                          ? true
+                          : false
+                      }
+                      value="mobileMoney"
+                      type="checkbox"
+                      className="form-check-input mt-1"
+                      onChange={handleMobileMoney}
+                      data-parsley-errors-container="#error-checkbox"
+                    />
+                    <label className="pt-3">MOBILE MONEY</label>
+                  </div>
+
+                  <p id="error-checkbox"></p>
+                </div>
+              </div>
+
+              <div className="form-group col-lg-12 col-md-6 col-sm-12">
+                <label>TRANSACTION ALERT PREFERENCES</label>
+                <div className="eb_pref font-12 form-group col-lg-12 col-md-6 col-sm-12">
+                  <div className="form-check-inline flex justify-center">
+                    <input
+                      name="accountServiceRequest.transactionAlertPreference.emailAlert"
+                      checked={
+                        state.data.accountServicesRequest
+                          .transactionAlertPreference?.emailAlert
+                          ? true
+                          : false
+                      }
+                      value="emailAlert"
+                      type="checkbox"
+                      className="form-check-input mt-1"
+                      onChange={handleEmailAlert}
+                      data-parsley-errors-container="#error-checkbox"
+                    />
+                    <label className="pt-3">EMAIL ALERT</label>
+                  </div>
+                  <div className="form-check-inline flex justify-center">
+                    <input
+                      name="accountServiceRequest.transactionAlertPreference.smsAlert"
+                      checked={
+                        state.data.accountServicesRequest
+                          .transactionAlertPreference?.smsAlert
+                          ? true
+                          : false
+                      }
+                      value="smsAlert"
+                      type="checkbox"
+                      className="form-check-input mt-1"
+                      onChange={handleSmsAlert}
+                      data-parsley-errors-container="#error-checkbox"
+                    />
+                    <label className="pt-3">SMS ALERT</label>
+                  </div>
+
+                  <p id="error-checkbox"></p>
                 </div>
               </div>
             </div>
           </div>
         </div>
+
+        {Object.keys(errors).length > 0 && (
+          <span className="text-danger d-flex justify-content-center">
+            Please fill all required fields
+          </span>
+        )}
 
         <div className="form-group col-lg-12 col-md-12 col-sm-12 m-b-20">
           <div className="d-flex align-items-center justify-content-center m-t-20">

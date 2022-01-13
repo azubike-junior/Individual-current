@@ -1,8 +1,8 @@
-import React, { SyntheticEvent, useState } from "react";
+import React, { SyntheticEvent, useState, useRef } from "react";
 import { CsProps, UploadDetails } from "../../interfaces";
 import { useForm } from "react-hook-form";
 import { useStateMachine } from "little-state-machine";
-import { updateName, getBase64 } from "./../../utils/utilities";
+import { updateName, getBase64, getValues } from "./../../utils/utilities";
 import { Form } from "react-bootstrap";
 import {
   validateFileSize,
@@ -35,9 +35,13 @@ export default function UploadDocuments() {
   const [docTypeName, setDocTypeName] = useState("");
   const [fileUrl, setFileUrl] = useState("");
 
-  const { data: uploadTypes } = useGetUploadTypeQuery("");
+  const inputRef = useRef() as React.MutableRefObject<HTMLInputElement>;
 
-  // console.log(">>>>uploadTypes", uploadTypes);
+  const { data: documentTypes } = useGetUploadTypeQuery("");
+
+  const newValue = { value: "", text: "" };
+
+  const uploadTypes = getValues(documentTypes, newValue);
 
   const handleFiles = async (e: HTMLInputElement) => {
     const file = e.files;
@@ -46,7 +50,6 @@ export default function UploadDocuments() {
       return setUploadDocError("an image is required");
     }
     const validFileSize = await validateFileSize(file[0]?.size);
-    console.log(">>>>fileSizeValid", validFileSize);
 
     const validFileType = await validateFileType(
       FileService.getFileExtension(file[0]?.name)
@@ -71,12 +74,6 @@ export default function UploadDocuments() {
     setDoc(file[0]);
     setFileType(file[0].type);
     setImageName(file[0].name);
-    // imageToBase64(file)
-    //   .then((response: any) => {
-    //     console.log(">>>>>response", response);
-    //     setFileBase64(response);
-    //   })
-    //   .catch((e: any) => console.log(e));
 
     getBase64(file).then((result) => {
       setFileBase64(result);
@@ -90,7 +87,6 @@ export default function UploadDocuments() {
     const docTypeName = uploadTypes.find(
       (item: any) => item.value === value
     )?.text;
-    console.log(">>>>> doctypeName", docTypeName, value);
 
     setDocTypeError("");
     setDocTypeName(docTypeName);
@@ -107,14 +103,8 @@ export default function UploadDocuments() {
     },
   });
 
-  console.log(">>>>>>", state.data);
-
   //submit function
   const submitDocuments = () => {
-    console.log(">>>>> docTypeName", docTypeName);
-    console.log(">>>>> fileBase", fileBase64);
-    // console.log(">>>>> docTypeName", docTypeName);
-
     if (docTypeName === "") {
       return setDocTypeError("you need to choose a document type to continue");
     }
@@ -153,6 +143,7 @@ export default function UploadDocuments() {
       uploadDocumentRequest: [...docArray, newData],
     });
     console.log(">>>>>", state.data.uploadDocumentRequest);
+    inputRef.current.value = "";
   };
 
   const confirmAndContinue = () => {
@@ -209,17 +200,14 @@ export default function UploadDocuments() {
                             Bill with a valid address and 2 other preffered
                             documents.
                           </div>
-
                           <div className="form-group col-lg-4 col-md-6 col-sm-12 font-weight-700">
                             <label>SELECT A DOCUMENT TO UPLOAD</label>
                             <span className="text-danger">*</span>
 
                             <select
                               className="form-control"
-                              // name="uploadDocuments.docType"
                               value={docType}
                               onChange={(e) => handleChange(e)}
-                              // {...register("uploadDocuments.docType")}
                             >
                               {uploadTypes.map((item: any, index: number) => {
                                 return (
@@ -244,6 +232,7 @@ export default function UploadDocuments() {
                             <br />
                             <div className="border py-1 pl-2">
                               <input
+                                ref={inputRef}
                                 type="file"
                                 onChange={(e: SyntheticEvent) =>
                                   handleFiles(

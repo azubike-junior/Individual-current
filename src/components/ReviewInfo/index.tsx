@@ -9,6 +9,7 @@ import {
 import { useDispatch } from "react-redux";
 import {
   useGetBankBranchQuery,
+  useGetBankNameQuery,
   useGetCityQuery,
   useGetLgtQuery,
   useGetStatesQuery,
@@ -31,6 +32,7 @@ import {
 import { religions } from "./../../utils/constant";
 import Loader from "../Loader";
 import AccountOpenSuccessPage from "../../pages/AccountOpenSuccessPage";
+import { classNames } from "./../../utils/classNames";
 
 export default function REVIEW() {
   const { state: allData, actions } = useStateMachine({ updateName });
@@ -81,8 +83,7 @@ export default function REVIEW() {
     uploadDocumentRequest,
     employmentDetialRequest,
     detailOfNextKinRequest,
-    reference1,
-    reference2,
+    refereesRequests,
     religion,
     _lga,
     _title,
@@ -100,6 +101,7 @@ export default function REVIEW() {
   const { data: uploadTypes } = useGetUploadTypeQuery("");
   const { data: cities } = useGetCityQuery("");
   const { data: branches } = useGetBankBranchQuery("");
+  const { data: banks } = useGetBankNameQuery("");
 
   const userStateOfResidence = states?.find(
     (item: any) => item.value === stateOfResidence
@@ -111,6 +113,14 @@ export default function REVIEW() {
   const status = getText(maritalStatuses, maritalStatus);
   const userTitle = getText(titles, title);
 
+  const refBank1 = banks?.find(
+    (item: any) => item.value === refereesRequests.refereesRequest[0].bankName
+  )?.text;
+
+  const refBank2 = banks?.find(
+    (item: any) => item.value === refereesRequests.refereesRequest[1].bankName
+  )?.text;
+
   const submitHandler = () => {
     const {
       nationality,
@@ -121,8 +131,6 @@ export default function REVIEW() {
       _uploadTypes,
       _state,
       _title,
-      reference1,
-      reference2,
       dateofBirth,
       ...rest
     } = allData.data;
@@ -547,30 +555,30 @@ export default function REVIEW() {
                 <div className="m-t-20 col-lg-6">
                   <div className="card col-lg-12">
                     <div className="m-t-30 m-b-20">
-                      <h6>REFERENCE FORM 1</h6>
+                      <h6>REFERENCE 1</h6>
                     </div>
                     <div className="d-flex m-b-10 margin_bottom font_size">
                       <label className="col-lg-4 col-md-6 col-sm-12">
-                        FULL NAME:
+                        Account NAME:
                       </label>
                       <div className="col-lg-8 col-md-6 col-sm-12 font-weight-700">
-                        {reference1.fullName}
+                        {refereesRequests.refereesRequest[0].accountName}
                       </div>
                     </div>
                     <div className="d-flex m-b-10 margin_bottom font_size">
                       <label className="col-lg-4 col-md-6 col-sm-12">
-                        PHONE NUMBER:
+                        Account NUMBER:
                       </label>
                       <div className="col-lg-8 col-md-6 col-sm-12 font-weight-700">
-                        {reference1.phone}
+                        {refereesRequests.refereesRequest[0].accountNumber}
                       </div>
                     </div>
                     <div className="d-flex m-b-10 margin_bottom font_size">
                       <label className="col-lg-4 col-md-6 col-sm-12">
-                        EMAIL:
+                        Bank Name:
                       </label>
                       <div className="col-lg-8 col-md-6 col-sm-12 font-weight-700">
-                        {reference1.email}
+                        {refBank1}
                       </div>
                     </div>
                   </div>
@@ -584,28 +592,50 @@ export default function REVIEW() {
                     </div>
                     <div className="d-flex m-b-10 margin_bottom font_size">
                       <label className="col-lg-4 col-md-6 col-sm-12">
-                        FULL NAME:
+                        ACCOUNT NAME:
                       </label>
                       <div className="col-lg-8 col-md-6 col-sm-12 font-weight-700">
-                        {reference2.fullName}
+                        {refereesRequests.refereesRequest[1].accountName}
                       </div>
                     </div>
                     <div className="d-flex m-b-10 margin_bottom font_size">
                       <label className="col-lg-4 col-md-6 col-sm-12">
-                        PHONE NUMBER:
+                        ACCOUNT NUMBER:
                       </label>
                       <div className="col-lg-8 col-md-6 col-sm-12 font-weight-700">
-                        {reference2.phone}
+                        {refereesRequests.refereesRequest[1].accountNumber}
                       </div>
                     </div>
                     <div className="d-flex m-b-10 margin_bottom font_size">
                       <label className="col-lg-4 col-md-6 col-sm-12">
-                        EMAIL:
+                        BANK NAME:
                       </label>
                       <div className="col-lg-8 col-md-6 col-sm-12 font-weight-700">
-                        {reference2.email}
+                        {refBank2}
                       </div>
                     </div>
+                  </div>
+                </div>
+
+                <div className="form-group col-lg-6 col-md-12 col-sm-12 font-weight-700">
+                  <div className="header">
+                    <h5>Reference Form</h5>
+                  </div>
+                  <div className="table-responsive border">
+                    <table className="table table-hover mb-0 c_list">
+                      <thead style={{ backgroundColor: "#c4c4c4" }}>
+                        <tr>
+                          <th>S/N</th>
+                          <th>TITLE</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          {refereesRequests.imgName && <td>1</td>}
+                          <td>{refereesRequests.imgName}</td>
+                        </tr>
+                      </tbody>
+                    </table>
                   </div>
                 </div>
 
@@ -660,6 +690,18 @@ export default function REVIEW() {
                   </div>
                   <p id="error-checkbox"></p>
                 </div>
+
+                {responseData?.responseCode === "96" && (
+                  <span className="text-danger d-flex justify-content-center">
+                    This BVN has been used to create an Account.
+                  </span>
+                )}
+
+                {isError && (
+                  <span className="text-danger d-flex justify-content-center">
+                    sorry, something went wrong
+                  </span>
+                )}
 
                 <div className="form-group col-lg-12 col-md-12 col-sm-12 m-b-20">
                   <div className="d-flex align-items-center justify-content-center m-t-20">

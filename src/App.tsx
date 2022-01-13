@@ -14,7 +14,7 @@ const AccountOpenSuccessPage = lazy(
 
 function App() {
   return (
-    <div className="hero-anime">
+    <div className="hero-anime font-poppins">
       <Router>
         <Switch>
           <Suspense fallback={Loader}>
