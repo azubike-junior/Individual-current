@@ -4,6 +4,17 @@
   width: device-width;
 }
 
+a {
+  text-decoration: underline !important;
+}
+
+a:hover {
+  color: #000;
+  font-weight: bold;
+  text-decoration: underline;
+}
+
+
 .font-poppins {
   font-family: 'DM Sans', sans-serif;
 }

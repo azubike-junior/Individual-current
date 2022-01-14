@@ -216,7 +216,14 @@ export default function AccountSpecifications() {
 
     const docsArray = data.refereesRequests.refereesRequest;
 
-    console.log(">>>>>>.refData", docsArray);
+    //To be done later
+    // const bankText = banks?.find(
+    //   (bankItem: any) =>
+    //     bankItem.value === data.refereesRequests.refereesRequest[0].bankName)?.text;
+
+    // console.log("====================================");
+    // console.log(bankText);
+    // console.log("====================================");
 
     data.refereesRequests.refereesRequest.map((item) => {
       setRefData({
@@ -266,7 +273,7 @@ export default function AccountSpecifications() {
   const handleFiles = async (e: HTMLInputElement) => {
     const file = e.files;
 
-    console.log(">>>>file", file);
+    // console.log(">>>>file", file);
 
     if (!file) {
       return setUploadDocError("an image is required");
@@ -329,15 +336,7 @@ export default function AccountSpecifications() {
     inputRef.current.value = "";
   };
 
-  console.log(">>>>>state", state.data.refereesRequests, fileType, imgName);
-
-  const deleteDocument = (docType: string) => {
-    // const newFiles = state.data.refereesRequests.fileExt;
-    // actions.updateName({
-    //   ...state.data,
-    //   uploadDocumentRequest: [...newFiles],
-    // });
-  };
+  // console.log(">>>>>state", state.data.refereesRequests, fileType, imgName);
 
   return (
     <div
@@ -1107,7 +1106,7 @@ export default function AccountSpecifications() {
             </div>
             <div className="panel-body block d-md-flex d-lg-flex">
               <div className="form-group col-md-6">
-                <label>ELECTRONIC BANKING PREFERENCES</label>
+                <label className="ml-3">ELECTRONIC BANKING PREFERENCES</label>
                 <div className="eb_pref font-12 form-group col-lg-12 col-md-6 col-sm-12">
                   <div className="form-check-inline flex justify-center">
                     <input
@@ -1166,7 +1165,7 @@ export default function AccountSpecifications() {
               </div>
 
               <div className="form-group col-lg-12 col-md-6 col-sm-12">
-                <label>TRANSACTION ALERT PREFERENCES</label>
+                <label className="ml-3">TRANSACTION ALERT PREFERENCES</label>
                 <div className="eb_pref font-12 form-group col-lg-12 col-md-6 col-sm-12">
                   <div className="form-check-inline flex justify-center">
                     <input
@@ -1217,8 +1216,8 @@ export default function AccountSpecifications() {
         )}
 
         <div className="form-group col-lg-12 col-md-12 col-sm-12 m-b-20">
-          <div className="d-flex align-items-center justify-content-center m-t-20">
-            <div className="user_acct_details col-lg-2 col-md-6 col-sm-12">
+          <div className="block d-md-flex d-lg-flex align-items-center justify-content-center m-t-20">
+            <div className="user_acct_details mt-3 col-lg-2 col-md-6 col-sm-12">
               <button
                 type="button"
                 onClick={goBack}
@@ -1228,7 +1227,7 @@ export default function AccountSpecifications() {
               </button>
             </div>
 
-            <div className="user_acct_details col-lg-2 col-md-6 col-sm-12">
+            <div className="user_acct_details mt-3 col-lg-2 col-md-6 col-sm-12">
               <button
                 type="submit"
                 // onClick={handleNext}

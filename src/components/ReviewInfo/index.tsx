@@ -681,7 +681,7 @@ export default function REVIEW() {
                     <label className="pt-3 pl-1">
                       I agree to the{" "}
                       <a
-                        href="#"
+                        href="https://suntrustng.com/terms-of-use/"
                         style={{ textDecoration: "underline", color: "red" }}
                       >
                         SunTrust Bank Terms and Conditions
@@ -691,21 +691,20 @@ export default function REVIEW() {
                   <p id="error-checkbox"></p>
                 </div>
 
-                {responseData?.responseCode === "96" && (
-                  <span className="text-danger d-flex justify-content-center">
-                    This BVN has been used to create an Account.
-                  </span>
-                )}
-
-                {isError && (
-                  <span className="text-danger d-flex justify-content-center">
-                    sorry, something went wrong
-                  </span>
-                )}
-
                 <div className="form-group col-lg-12 col-md-12 col-sm-12 m-b-20">
-                  <div className="d-flex align-items-center justify-content-center m-t-20">
-                    <div className="user_acct_details col-lg-2 col-md-6 col-sm-12">
+                  {responseData?.responseCode === "96" && (
+                    <span className="text-danger ml-3 d-flex justify-content-center">
+                      This BVN has been used to create an Account.
+                    </span>
+                  )}
+
+                  {isError && (
+                    <span className="text-danger ml-3 d-flex justify-content-center">
+                      sorry, something went wrong
+                    </span>
+                  )}
+                  <div className="block d-md-flex d-lg-flex align-items-center justify-content-center m-t-20">
+                    <div className="user_acct_details mt-3   col-lg-2 col-md-6 col-sm-12">
                       <button
                         type="button"
                         onClick={() => dispatch(handlePrevious())}
@@ -715,14 +714,14 @@ export default function REVIEW() {
                       </button>
                     </div>
 
-                    <div className="user_acct_details col-lg-2 col-md-6 col-sm-12">
+                    <div className="user_acct_details col-lg-2 mt-3 col-md-6 col-sm-12">
                       <button
                         disabled={!isChecked}
                         type="button"
                         onClick={submitHandler}
                         className="btn btn-block btn-suntrust font-weight-900"
                       >
-                        {isLoading ? <Loader /> : "Submit"}
+                        {isLoading ? <Loader /> : "SUBMIT"}
                       </button>
                     </div>
                   </div>

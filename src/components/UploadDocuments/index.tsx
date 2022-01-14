@@ -331,8 +331,8 @@ export default function UploadDocuments() {
           </div>
         </div>
         <div className="form-group col-lg-12 col-md-12 col-sm-12 m-b-20">
-          <div className="d-flex align-items-center justify-content-center m-t-20">
-            <div className="user_acct_details col-lg-2 col-md-6 col-sm-12">
+          <div className="block d-md-flex d-lg-flex align-items-center justify-content-center m-t-20">
+            <div className="user_acct_details col-lg-2 mt-3 col-md-6 col-sm-12">
               <button
                 type="button"
                 onClick={() => dispatch(handlePrevious())}
@@ -342,7 +342,7 @@ export default function UploadDocuments() {
               </button>
             </div>
 
-            <div className="user_acct_details col-lg-2 col-md-6 col-sm-12">
+            <div className="user_acct_details col-lg-2 mt-3 col-md-6 col-sm-12">
               <button
                 onClick={confirmAndContinue}
                 className="btn btn-block btn-suntrust font-weight-900"
