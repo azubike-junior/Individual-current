@@ -169,11 +169,23 @@ export default function AccountSpecifications() {
 
   const { data: states } = useGetStatesQuery("");
   const { data: LGA } = useGetLgtQuery("");
-  const { data: uploadTypes } = useGetUploadTypeQuery("");
+  const { data: docTypes } = useGetUploadTypeQuery("");
   const { data: cities } = useGetCityQuery("");
-  const { data: branches } = useGetBankBranchQuery("");
+  const { data: bankBranches } = useGetBankBranchQuery("");
   const { data: banks } = useGetBankNameQuery("");
   const newValue = { value: "", text: "-select-" };
+
+  const branches = bankBranches?.filter(
+    (branch: { text: string; value: string }) =>
+      branch.value !== "203" && branch.value !== "208" && branch.value !== "201"
+  );
+
+  const uploadTypes = docTypes?.filter(
+    (doc: { text: string; value: string }) =>
+      doc.text !== "NIN" &&
+      doc.text !== "Signature" &&
+      doc.text !== "Passport Photograph"
+  );
 
   const {
     register,
@@ -199,9 +211,10 @@ export default function AccountSpecifications() {
     data.dateofBirth = response?.dateOfBirth;
     data.nationality = response?.nationality;
     data.city = Number(data.city);
-    data.gender = Number(data.gender);
+    data.gender = response?.gender;
     data.title = Number(data.title);
     data.lga = Number(data.lga);
+    data.addressLga = Number(data.addressLga);
     data.state = Number(data.state);
     data.branchcode = Number(data.branchcode);
     data.maritalStatus = Number(data.maritalStatus);
@@ -215,15 +228,6 @@ export default function AccountSpecifications() {
     data._branchcode = getText(branches, data.branchcode);
 
     const docsArray = data.refereesRequests.refereesRequest;
-
-    //To be done later
-    // const bankText = banks?.find(
-    //   (bankItem: any) =>
-    //     bankItem.value === data.refereesRequests.refereesRequest[0].bankName)?.text;
-
-    // console.log("====================================");
-    // console.log(bankText);
-    // console.log("====================================");
 
     data.refereesRequests.refereesRequest.map((item) => {
       setRefData({
@@ -261,8 +265,6 @@ export default function AccountSpecifications() {
 
     actions.updateName(state.data);
     dispatch(handleNext());
-
-    console.log("data", data);
   };
 
   const goBack = () => {
@@ -272,8 +274,6 @@ export default function AccountSpecifications() {
 
   const handleFiles = async (e: HTMLInputElement) => {
     const file = e.files;
-
-    // console.log(">>>>file", file);
 
     if (!file) {
       return setUploadDocError("an image is required");
@@ -318,10 +318,6 @@ export default function AccountSpecifications() {
       return setUploadDocError("You need to choose a file ");
     }
 
-    // if (uploadDocError) {
-    //   return;
-    // }
-
     actions.updateName({
       ...state.data,
       refereesRequests: {
@@ -335,8 +331,6 @@ export default function AccountSpecifications() {
 
     inputRef.current.value = "";
   };
-
-  // console.log(">>>>>state", state.data.refereesRequests, fileType, imgName);
 
   return (
     <div
@@ -388,18 +382,17 @@ export default function AccountSpecifications() {
                           message="Title is required"
                         />
 
-                        <SelectInput
-                          className="form-group col-lg-4 col-md-6 col-sm-12 font-weight-700"
-                          required
-                          name="gender"
-                          label="GENDER"
-                          register={register}
-                          selectArray={getValues(genders, newValue)}
-                          // selectArray={genders}
-                          // errors={errors.gender}
-                          type="text"
-                          message="Gender is required"
-                        />
+                        <div className="form-group col-lg-4 col-md-6 col-sm-12 font-weight-700">
+                          <HookInputField
+                            label="GENDER"
+                            type="text"
+                            readOnly
+                            value={response?.gender}
+                            // value="76339393993"
+                            register={register}
+                            name="gender"
+                          />
+                        </div>
 
                         <div className="form-group col-lg-4 col-md-6 col-sm-12 font-weight-700">
                           <HookInputField
@@ -608,14 +601,14 @@ export default function AccountSpecifications() {
 
                         <SelectInput
                           className="form-group col-lg-12 col-md-6 col-sm-12 font-weight-700"
-                          name="lga"
+                          name="addressLga"
                           label="LGA"
                           register={register}
                           selectArray={getValues(LGA, newValue)}
                           required
-                          // errors={errors.lga}
+                          errors={errors.addressLga}
                           type="text"
-                          message="local govt is required"
+                          message="local government is required"
                         />
 
                         <SelectInput
@@ -729,7 +722,7 @@ export default function AccountSpecifications() {
                             name="productType"
                             // message="product type is required"
                             productInfo
-                            value="Savings"
+                            value="INDIVIDUAL CURRENT"
                             readOnly
                           />
                         </div>
@@ -1099,7 +1092,7 @@ export default function AccountSpecifications() {
         </div>
 
         {/* <!-- ACCOUNT SERVICES REQUIRED --> */}
-        <div className="col-lg-12">
+        {/* <div className="col-lg-12">
           <div className="panel panel-default">
             <div className="panel-heading text-center bg-gray white-text text-white font-weight-900">
               ACCOUNT SERVICES REQUIRED (fees may apply)
@@ -1207,7 +1200,7 @@ export default function AccountSpecifications() {
               </div>
             </div>
           </div>
-        </div>
+        </div> */}
 
         {Object.keys(errors).length > 0 && (
           <span className="text-danger d-flex justify-content-center">

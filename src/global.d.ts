@@ -33,8 +33,9 @@ declare module "little-state-machine" {
       telNumber2?: string;
       emailAddress?: string;
       motherMaidenName?: string;
+      addressLga?: number;
       dateofBirth?: string;
-      gender?: number;
+      gender?: string;
       city?: number;
       state?: number;
       idNumber?: string;

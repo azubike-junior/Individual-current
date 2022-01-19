@@ -20,8 +20,9 @@ export interface CsProps {
   address1?: string;
   address2?: string;
   city?: number;
+  addressLga?: number;
   motherMaidenName?: string;
-  gender?: number;
+  gender?: string;
   imgName?: string;
   state?: number;
   documentType?: string;

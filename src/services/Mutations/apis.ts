@@ -45,6 +45,14 @@ export const validateBvnAndOtp = createApi({
         body: data,
       }),
     }),
+
+    sendMail: builder.mutation({
+      query: (data: any) => ({
+        url: "SendMail",
+        method: "POST",
+        body: data,
+      }),
+    }),
   }),
 });
 
@@ -131,7 +139,10 @@ export const { handleNext, handlePrevious, setPage } =
   NextAndPreviousHandler.actions;
 export default NextAndPreviousHandler.reducer;
 export const { useOpenIndividualCurrentMutation } = individualCurrent;
-export const { useValidateBvnMutation, useValidateOtpMutation } =
-  validateBvnAndOtp;
+export const {
+  useValidateBvnMutation,
+  useValidateOtpMutation,
+  useSendMailMutation,
+} = validateBvnAndOtp;
 
 //22277557146

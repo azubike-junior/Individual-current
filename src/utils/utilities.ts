@@ -46,6 +46,8 @@ export const updateName = (state: GlobalState, payload: CsProps) => ({
   },
 });
 
+export const uploadTypes = [{}]
+
 export const generateOtp = (length: number) => {
   let pin = "";
   for (let i = 0; i < length; i++) {
@@ -67,12 +69,9 @@ export const getBase64 = (file: any) => {
     // on reader load somthing...
     reader.onloadend = () => {
       // Make a fileInfo Object
-      console.log("Called", reader);
       // baseURL = reader.result;
-      console.log(baseURL);
       resolve(reader.result);
     };
-    console.log(fileInfo);
   });
 };
 
@@ -119,6 +118,13 @@ const switchMonthToNumber = (month: string) => {
 export const getValues = (data: any, type: {}) => {
   if (data?.length > 0) {
     return [type, ...data];
+  }
+  return [];
+};
+
+export const addOthers = (data: any, type: {}) => {
+  if (data?.length > 0) {
+    return [...data, type];
   }
   return [];
 };

@@ -2,7 +2,12 @@ import React, { SyntheticEvent, useState, useRef } from "react";
 import { CsProps, UploadDetails } from "../../interfaces";
 import { useForm } from "react-hook-form";
 import { useStateMachine } from "little-state-machine";
-import { updateName, getBase64, getValues } from "./../../utils/utilities";
+import {
+  updateName,
+  getBase64,
+  getValues,
+  addOthers,
+} from "./../../utils/utilities";
 import { Form } from "react-bootstrap";
 import {
   validateFileSize,
@@ -39,9 +44,11 @@ export default function UploadDocuments() {
 
   const { data: documentTypes } = useGetUploadTypeQuery("");
 
-  const newValue = { value: "", text: "" };
+  const newValue = { text: "", value: "" };
 
-  const uploadTypes = getValues(documentTypes, newValue);
+  const allDocs = getValues(documentTypes, newValue);
+
+  const uploadTypes = addOthers(allDocs, { text: "Others", value: "7" });  
 
   const handleFiles = async (e: HTMLInputElement) => {
     const file = e.files;
@@ -65,9 +72,6 @@ export default function UploadDocuments() {
       return;
     }
 
-    // if (validFileSize.isValid) {
-    //   return setUploadDocError("image size must not be more 500kb");
-    // }
     const imageUrl = URL.createObjectURL(file[0]);
 
     setFileUrl(imageUrl);
@@ -109,10 +113,10 @@ export default function UploadDocuments() {
       return setDocTypeError("you need to choose a document type to continue");
     }
 
-    if (fileBase64 === "") {
+    if (!doc) {
       return setUploadDocError("you need to choose a file ");
     }
-
+    
     const docTypes = state.data.uploadDocumentRequest.map(
       (item) => item.docType
     );
@@ -142,7 +146,6 @@ export default function UploadDocuments() {
       ...state.data,
       uploadDocumentRequest: [...docArray, newData],
     });
-    console.log(">>>>>", state.data.uploadDocumentRequest);
     inputRef.current.value = "";
   };
 
@@ -153,7 +156,6 @@ export default function UploadDocuments() {
       );
     }
     dispatch(handleNext());
-    console.log(">>>>>data", state.data);
   };
 
   const deleteDocument = (docType: string) => {
